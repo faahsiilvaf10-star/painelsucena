@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json().catch(() => ({}));
-    const { desvioId, correctorName } = body || {};
+    const { desvioId, userName } = body || {};
 
     if (!desvioId) {
       return new Response(JSON.stringify({ error: "desvioId obrigatório" }), {
@@ -80,28 +80,44 @@ Deno.serve(async (req) => {
         .join("\n");
     }
 
-    const statusLabel = desvio.status === "Em Análise" ? "Aguardando Aprovação" : "CORRIGIDO";
-    const statusEmoji = desvio.status === "Em Análise" ? "⏳" : "✅";
+    const isAnalysis = desvio.status === "Em Análise";
+    const isApproved = desvio.status === "corrigido";
+
+    const statusLabel = isAnalysis ? "EM ANÁLISE" : (isApproved ? "APROVADA" : "CORRIGIDO");
+    const statusEmoji = isAnalysis ? "⏳" : "✅";
 
     const lines = [
-      `${statusEmoji} *DESVIO ${statusLabel}*`,
+      `${statusEmoji} *CORREÇÃO ${statusLabel}*`,
       "━━━━━━━━━━━━━━━━━━━━",
       "",
       `📋 *Descrição original:*\n${desvio.description || "—"}`,
       "",
-      `🛠️ *Correção realizada:*\n${desvio.correction || "—"}`,
     ];
+
+    if (isApproved) {
+      lines.push(
+        `✅ *A correção foi aprovada por:* ${userName || "—"}`,
+        "",
+        `🛠️ *Resumo da Correção:*\n${desvio.correction || "—"}`,
+      );
+    } else {
+      lines.push(
+        `🛠️ *Correção realizada:*\n${desvio.correction || "—"}`,
+        "",
+        `⏳ *Aguardando análise de:* ${desvio.created_by_name || "—"}`,
+      );
+    }
 
     if (mentionedNames.length > 0) {
       lines.push("", `👤 *Responsável(is):* ${mentionedNames.join(", ")}`);
     }
-    if (itemDetails) {
+    
+    if (itemDetails && !isApproved) { // Only show details in analysis to avoid too long messages on approval
       lines.push("", `📝 *Itens corrigidos:*`, itemDetails);
     }
+
     lines.push(
       "",
-      `👨‍💼 *Registrado por:* ${desvio.created_by_name || "—"}`,
-      `🛠️ *Corrigido por:* ${correctorName || "—"}`,
       `🕒 *Em:* ${nowStr}`,
       "━━━━━━━━━━━━━━━━━━━━",
     );
@@ -110,12 +126,12 @@ Deno.serve(async (req) => {
     const firstPhoto = photoUrls[0] || null;
 
     const { error: insErr } = await admin.from("wapi_outbox").insert({
-      kind: firstPhoto ? "image" : "text",
+      kind: (firstPhoto && !isApproved) ? "image" : "text",
       target_type: "group",
       phone: targetGroupId,
-      message: firstPhoto ? null : caption,
-      caption: firstPhoto ? caption : null,
-      image_url: firstPhoto,
+      message: (firstPhoto && !isApproved) ? null : caption,
+      caption: (firstPhoto && !isApproved) ? caption : null,
+      image_url: isApproved ? null : firstPhoto,
       origin: "desvio_correction",
     });
     if (insErr) {
@@ -124,7 +140,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const extraPhotos = photoUrls.slice(1);
+    const extraPhotos = isApproved ? [] : photoUrls.slice(1);
     if (extraPhotos.length > 0) {
       const rows = extraPhotos.map((url) => ({
         kind: "image",

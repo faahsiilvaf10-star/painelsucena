@@ -179,10 +179,10 @@ export function useUpdateDesvio() {
       }
 
       // Se for correção ou se for solicitado o envio manual
-      if (updates.status === "corrigido" || forceNotify) {
+      if (updates.status === "corrigido" || updates.status === "Em Análise" || forceNotify) {
         try {
           await supabase.functions.invoke("wapi-desvio-correction-notify", {
-            body: { desvioId: id, correctorName: profile?.full_name || "Usuário" },
+            body: { desvioId: id, userName: profile?.full_name || "Usuário" },
           });
         } catch (e) {
           console.warn("[wapi-desvio-correction-notify] falha:", e);
@@ -329,7 +329,7 @@ export function useUpdateDesvioStatus() {
       if (status === "corrigido") {
         try {
           await supabase.functions.invoke("wapi-desvio-correction-notify", {
-            body: { desvioId, correctorName: profile?.full_name || "Usuário" },
+            body: { desvioId, userName: profile?.full_name || "Usuário" },
           });
         } catch (e) {
           console.warn("[wapi-desvio-correction-notify] falha:", e);
