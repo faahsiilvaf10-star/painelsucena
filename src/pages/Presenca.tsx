@@ -404,11 +404,12 @@ const Presenca = () => {
       });
     }
 
-    const ausentes = list.filter((c) => !isPresent(c));
-    const presentes = list.length - ausentes.length;
+    const ausentes = list.filter((c) => !isPresent(c) && !isExternal(c));
+    const externos = list.filter(isExternal);
+    const presentes = list.length - ausentes.length - externos.length;
     lines.push("───────────────────────────");
     lines.push(
-      `✅ Presentes: ${presentes}  |  ❌ Ausentes: ${ausentes.length}  |  👥 Total: ${list.length}`
+      `✅ Presentes: ${presentes}  |  ❌ Ausentes: ${ausentes.length}  |  🛠️ Externo: ${externos.length}  |  👥 Total: ${list.length}`
     );
     return lines.join("\n").trim();
   };
