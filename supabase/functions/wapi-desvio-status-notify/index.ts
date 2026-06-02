@@ -81,9 +81,17 @@ Deno.serve(async (req) => {
       : null;
     const updatedAtStr = new Date().toLocaleString("pt-BR", { timeZone: "America/Belem" });
 
+    const isReajuste = statusChanged && desvio.status === "Em Tratamento";
     const statusLabel = desvio.status === "Em Análise" ? "Em Análise" : desvio.status;
+    
+    let title = statusChanged ? `🔔 *STATUS ALTERADO: ${statusLabel}*` : `📝 *DESVIO ATUALIZADO*`;
+    
+    if (isReajuste) {
+      title = `⚠️ *SOLICITAÇÃO DE REAJUSTE - NÃO CONFORME*`;
+    }
+
     const lines = [
-      statusChanged ? `🔔 *STATUS ALTERADO: ${statusLabel}*` : `📝 *DESVIO ATUALIZADO*`,
+      title,
       "━━━━━━━━━━━━━━━━━━━━",
       "",
       `🔖 *Etiquetas:* ${Array.isArray(desvio.tags) ? desvio.tags.join(", ") : "—"}`,
