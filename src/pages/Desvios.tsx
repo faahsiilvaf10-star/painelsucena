@@ -81,7 +81,7 @@ import { DesviosTutorial } from "@/components/desvios/DesviosTutorial";
 const STATUS_OPTIONS = [
   { id: "Aberto", label: "Aberto", color: "bg-blue-500" },
   { id: "Em Tratamento", label: "Em Tratamento", color: "bg-amber-500" },
-  { id: "Concluído", label: "Concluído", color: "bg-green-500" },
+  { id: "corrigido", label: "Corrigido", color: "bg-green-500" },
   { id: "Cancelado", label: "Cancelado", color: "bg-gray-500" },
 ];
 
