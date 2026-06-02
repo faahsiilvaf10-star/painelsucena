@@ -56,6 +56,7 @@ export const useAttendanceDailyMarks = (date: string) => {
     mutationFn: async (params: {
       area: AttendanceArea;
       absentIds: number[];
+      externalWorkIds?: number[];
     }) => {
       const { error } = await supabase
         .from("attendance_daily_marks")
