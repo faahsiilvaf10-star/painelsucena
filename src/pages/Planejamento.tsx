@@ -138,7 +138,7 @@ export default function Planejamento() {
       const worksheet = workbook.getWorksheet(1) || workbook.worksheets[0];
       if (!worksheet) throw new Error("Não foi possível encontrar uma aba na planilha.");
 
-      const updates: { id: string; meta: number; realizado: number }[] = [];
+      const updates: { id: string; meta: number; realizado: number; atividade: string }[] = [];
       const COL_LINHA = 1; // Coluna A
       const COL_META = 3;  // Coluna C
       const COL_REAL = 4;  // Coluna D
@@ -164,7 +164,8 @@ export default function Planejamento() {
             updates.push({
               id: meta.id,
               meta: num(metaVal),
-              realizado: num(realVal)
+              realizado: num(realVal),
+              atividade: meta.atividade
             });
           }
         }
@@ -180,7 +181,8 @@ export default function Planejamento() {
         .upsert(updates.map(u => ({
           id: u.id,
           meta: u.meta,
-          realizado: u.realizado
+          realizado: u.realizado,
+          atividade: u.atividade
         })));
 
       if (updateError) throw updateError;
