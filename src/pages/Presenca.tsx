@@ -397,7 +397,7 @@ const Presenca = () => {
         lines.push(`👷 ${label}:`);
         lines.push("");
         items.forEach((c) => {
-          const mark = isPresent(c) ? "✅" : "❌";
+          const mark = isExternal(c) ? "🛠️ (Externo)" : isPresent(c) ? "✅" : "❌";
           lines.push(`${toTitleCase(c.nome)} ${mark}`);
           lines.push("");
         });
