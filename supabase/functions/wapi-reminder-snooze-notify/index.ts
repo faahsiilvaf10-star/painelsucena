@@ -101,36 +101,48 @@ Deno.serve(async (req) => {
     lines.push(`_Mensagem automática - Sucena_`);
     const message = lines.join("\n");
 
-    // Envio: também notifica o grupo (se houver) para consistência com o sistema de lembretes
+    // Envio: determina se vai para o grupo ou privado
     const rows: any[] = [];
-    if (cfg.group_id) {
-      rows.push({
-        kind: "text",
-        target_type: "group",
-        phone: cfg.group_id,
-        message,
-        origin: "reminder_snooze",
-      });
-    }
-
-    if (targetIds.length > 0) {
-      const { data: profs } = await admin
-        .from("profiles")
-        .select("user_id, full_name, whatsapp_number")
-        .in("user_id", targetIds);
-      for (const p of profs || []) {
-        const digits = String(p.whatsapp_number || "").replace(/\D/g, "");
-        if (digits.length < 10) continue;
-        const phone = digits.length === 10 || digits.length === 11 ? "55" + digits : digits;
+    
+    // Regra: Só envia para o grupo se for "all"
+    if (r.mention_type === "all") {
+      if (cfg.group_id) {
         rows.push({
           kind: "text",
-          target_type: "contact",
-          phone,
+          target_type: "group",
+          phone: cfg.group_id,
           message,
           origin: "reminder_snooze",
-          recipient_user_id: p.user_id,
-          recipient_name: p.full_name || "",
         });
+      }
+    } else {
+      // Se não for "all", envia privado para os interessados (incluindo quem adiou se for o criador)
+      const finalRecipients = new Set<string>();
+      if (snoozed_by) finalRecipients.add(snoozed_by); // Quem adiou sempre recebe confirmação
+      if (r.created_by) finalRecipients.add(r.created_by); // Criador sempre recebe
+      
+      targetIds.forEach(id => finalRecipients.add(id)); // Outros mencionados
+
+      if (finalRecipients.size > 0) {
+        const { data: profs } = await admin
+          .from("profiles")
+          .select("user_id, full_name, whatsapp_number")
+          .in("user_id", Array.from(finalRecipients));
+          
+        for (const p of profs || []) {
+          const digits = String(p.whatsapp_number || "").replace(/\D/g, "");
+          if (digits.length < 10) continue;
+          const phone = digits.length === 10 || digits.length === 11 ? "55" + digits : digits;
+          rows.push({
+            kind: "text",
+            target_type: "contact",
+            phone,
+            message,
+            origin: "reminder_snooze",
+            recipient_user_id: p.user_id,
+            recipient_name: p.full_name || "",
+          });
+        }
       }
     }
 
