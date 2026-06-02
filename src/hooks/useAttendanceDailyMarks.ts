@@ -84,11 +84,6 @@ export const useAttendanceDailyMarks = (date: string) => {
     return new Set(row?.absent_employee_ids ?? []);
   };
 
-  const getAbsentIds = (area: AttendanceArea): Set<number> => {
-    const row = (query.data ?? []).find((m) => m.area === area);
-    return new Set(row?.absent_employee_ids ?? []);
-  };
-
   const getExternalWorkIds = (area: AttendanceArea): Set<number> => {
     const row = (query.data ?? []).find((m) => m.area === area);
     return new Set(row?.external_work_employee_ids ?? []);
