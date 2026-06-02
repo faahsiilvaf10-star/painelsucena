@@ -283,6 +283,7 @@ export default function Desvios() {
           updates: finalUpdates,
           action: isNewCorrection ? "Correção" : "Edição",
           comment: isNewCorrection ? "Correção realizada pelo responsável" : (send ? "Desvio salvo e enviado" : "Desvio atualizado"),
+          forceNotify: send,
         });
       } else {
         await createDesvio.mutateAsync(finalUpdates);
