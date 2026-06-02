@@ -335,14 +335,30 @@ export default function Desvios() {
   const handleStatusChange = async (status: string, customComment?: string) => {
     if (!selectedDesvio) return;
     try {
+      const isReopening = selectedDesvio.status === "Em Análise" && status === "Em Tratamento";
+      
+      const updates: any = { status };
+      
+      // Se for reabertura por recusa, limpamos os campos de correção para nova tentativa
+      if (isReopening) {
+        updates.correction = null;
+        updates.correction_photo_urls = [];
+      }
+
       await updateDesvio.mutateAsync({
         id: selectedDesvio.id,
-        updates: { status },
-        action: "Mudança de Status",
-        comment: customComment || `Status alterado para ${status}`,
+        updates,
+        action: isReopening ? "Solicitação de Reajuste" : "Mudança de Status",
+        comment: customComment || (isReopening ? "Correção recusada, solicitado reajuste." : `Status alterado para ${status}`),
       });
-      setFormState(prev => ({ ...prev, status }));
-      if (status === "Em Tratamento") {
+      
+      setFormState(prev => ({ 
+        ...prev, 
+        status,
+        ...(isReopening ? { correction: "", correction_photo_urls: [] } : {})
+      }));
+
+      if (status === "Em Tratamento" || status === "corrigido") {
         resetForm();
       }
     } catch (error) {
