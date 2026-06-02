@@ -601,7 +601,7 @@ export default function Desvios() {
                     <Button 
                       variant="outline" 
                       className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50"
-                      onClick={() => handleStatusChange("Em Tratamento")}
+                      onClick={() => handleStatusChange("Em Tratamento", formState.comments)}
                       disabled={!canApprove}
                     >
                       <Ban className="w-4 h-4" /> Recusar / Solicitar Ajuste
