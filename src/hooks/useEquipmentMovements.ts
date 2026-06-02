@@ -156,11 +156,11 @@ export function useCreateEquipmentMovement() {
       // Get user profile to check for environment
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("unidade")
+        .select("environment")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const userEnvironment = profileData?.unidade || "barcarena";
+      const userEnvironment = profileData?.environment || "barcarena";
       const movementEnvironment = movement.environment || userEnvironment;
 
       const today = getBrazilNorthTodayString();
@@ -253,6 +253,7 @@ export function useCreateEquipmentMovement() {
                   started_at: latestIso,
                   defect_description: latestMovement.problem_description || null,
                   changed_by_driver: user.id,
+                  environment: movementEnvironment,
                 });
             }
           } else if (latestMovement.movement_type === "entrada") {
