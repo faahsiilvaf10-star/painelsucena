@@ -876,23 +876,40 @@ const Presenca = () => {
                     <div className="divide-y">
                       {filtered.map((c) => {
                         const absent = absentSet.has(c.id);
+                        const external = externalWorkByArea[activeArea].has(c.id);
                         return (
                           <div
                             key={c.id}
                             className="flex items-center gap-3 py-3 hover:bg-muted/40 px-2 rounded transition"
                           >
-                            <Checkbox
-                              checked={absent}
-                              onCheckedChange={() => toggleAbsent(c.id)}
-                              aria-label="Marcar como ausente"
-                              disabled={locked}
-                            />
+                            <div className="flex flex-col gap-1 pr-2 border-r">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={absent}
+                                  onCheckedChange={() => toggleAbsent(c.id)}
+                                  aria-label="Marcar como ausente"
+                                  disabled={locked}
+                                />
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Ausente</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={external}
+                                  onCheckedChange={() => toggleExternalWork(c.id)}
+                                  aria-label="Marcar como trabalho externo"
+                                  disabled={locked}
+                                />
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Externo</span>
+                              </div>
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div
                                 className={`font-medium truncate ${
                                   absent
                                     ? "line-through text-muted-foreground"
-                                    : ""
+                                    : external
+                                      ? "text-blue-600"
+                                      : ""
                                 }`}
                               >
                                 {toTitleCase(c.nome)}
@@ -902,7 +919,7 @@ const Presenca = () => {
                               </div>
                             </div>
                             <span className="text-lg" aria-hidden>
-                              {absent ? "❌" : "✅"}
+                              {absent ? "❌" : external ? "🛠️" : "✅"}
                             </span>
                             <Button
                               variant="ghost"
