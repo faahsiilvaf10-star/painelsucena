@@ -604,7 +604,7 @@ export default function Desvios() {
                       onClick={() => handleStatusChange("Em Tratamento", formState.comments)}
                       disabled={!canApprove}
                     >
-                      <Ban className="w-4 h-4" /> Recusar / Solicitar Ajuste
+                      <Ban className="w-4 h-4" /> Recusar / Solicitar Reajuste
                     </Button>
                   </div>
                 </CardContent>
