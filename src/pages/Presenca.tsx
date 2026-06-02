@@ -327,7 +327,9 @@ const Presenca = () => {
       (c) => employeeAreaMap.get(c.id) === area
     );
     const absents = absentByArea[area];
-    const isPresent = (c: Colaborador) => !absents.has(c.id);
+    const externalWorks = externalWorkByArea[area];
+    const isPresent = (c: Colaborador) => !absents.has(c.id) && !externalWorks.has(c.id);
+    const isExternal = (c: Colaborador) => externalWorks.has(c.id);
     const header = AREAS.find((a) => a.id === area)!.header;
 
     const lines: string[] = [];
