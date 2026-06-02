@@ -81,7 +81,7 @@ import { DesviosTutorial } from "@/components/desvios/DesviosTutorial";
 const STATUS_OPTIONS = [
   { id: "Aberto", label: "Aberto", color: "bg-blue-500" },
   { id: "Em Tratamento", label: "Em Tratamento", color: "bg-amber-500" },
-  { id: "Concluído", label: "Concluído", color: "bg-green-500" },
+  { id: "corrigido", label: "Corrigido", color: "bg-green-500" },
   { id: "Cancelado", label: "Cancelado", color: "bg-gray-500" },
 ];
 
@@ -110,6 +110,7 @@ export default function Desvios() {
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const correctionFileInputRef = useRef<HTMLInputElement>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Form State
@@ -127,6 +128,7 @@ export default function Desvios() {
     comments: "",
     status: "Aberto",
     attachments: [],
+    correction_photo_urls: [],
   });
 
   const isCreator = useMemo(() => {
@@ -155,7 +157,7 @@ export default function Desvios() {
   const availableStatuses = useMemo(() => {
     if (isCreator || isAdmin) return STATUS_OPTIONS;
     if (isResponsible) {
-      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Concluído"].includes(opt.id));
+      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "corrigido"].includes(opt.id));
     }
     return [];
   }, [isCreator, isResponsible, isAdmin]);
@@ -166,9 +168,9 @@ export default function Desvios() {
       total: desvios.length,
       open: desvios.filter((d) => d.status === "Aberto").length,
       inTreatment: desvios.filter((d) => d.status === "Em Tratamento").length,
-      done: desvios.filter((d) => d.status === "Concluído").length,
+      done: desvios.filter((d) => d.status === "corrigido").length,
       delayed: desvios.filter((d) => 
-        !["Concluído", "Cancelado"].includes(d.status) && 
+        !["corrigido", "Cancelado"].includes(d.status) && 
         d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date))
       ).length,
     };
@@ -187,9 +189,9 @@ export default function Desvios() {
       if (activeFilter === "total") return true;
       if (activeFilter === "open") return d.status === "Aberto";
       if (activeFilter === "inTreatment") return d.status === "Em Tratamento";
-      if (activeFilter === "done") return d.status === "Concluído";
+      if (activeFilter === "done") return d.status === "corrigido";
       if (activeFilter === "delayed") {
-        return !["Concluído", "Cancelado"].includes(d.status) && 
+        return !["corrigido", "Cancelado"].includes(d.status) && 
                d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date));
       }
       return true;
@@ -217,6 +219,23 @@ export default function Desvios() {
       }
     }
   };
+  
+  const handleCorrectionFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      try {
+        const url = await uploadFile.mutateAsync(file);
+        setFormState((prev) => ({
+          ...prev,
+          correction_photo_urls: [...(prev.correction_photo_urls || []), url],
+        }));
+      } catch (error) {
+        toast.error(`Erro ao fazer upload de ${file.name}`);
+      }
+    }
+  };
 
   const resetForm = () => {
     setFormState({
@@ -233,6 +252,7 @@ export default function Desvios() {
       comments: "",
       status: "Aberto",
       attachments: [],
+      correction_photo_urls: [],
     });
     setSelectedDesvio(null);
     setIsEditing(false);
@@ -249,12 +269,12 @@ export default function Desvios() {
       const isNewCorrection = 
         selectedDesvio && 
         canEditCorrection && 
-        formState.correction && 
-        formState.correction !== selectedDesvio.correction;
+        ((formState.correction && formState.correction !== selectedDesvio.correction) || 
+         (formState.correction_photo_urls && JSON.stringify(formState.correction_photo_urls) !== JSON.stringify(selectedDesvio.correction_photo_urls)));
 
       const finalUpdates = {
         ...formState,
-        status: isNewCorrection ? "Concluído" : formState.status
+        status: isNewCorrection ? "corrigido" : formState.status
       };
 
       if (selectedDesvio) {
@@ -471,6 +491,39 @@ export default function Desvios() {
                       Somente o usuário responsável ou administradores podem preencher este campo.
                     </p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Fotos da Correção</label>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    {formState.correction_photo_urls?.map((url, i) => (
+                      <div key={i} className="relative group border rounded-lg overflow-hidden h-24 bg-muted/30">
+                        <img src={url} alt={`Correção ${i}`} className="w-full h-full object-cover" />
+                        <button
+                          className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setFormState({ ...formState, correction_photo_urls: formState.correction_photo_urls?.filter((_, idx) => idx !== i) })}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    ref={correctionFileInputRef}
+                    onChange={handleCorrectionFileUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-dashed"
+                    onClick={() => correctionFileInputRef.current?.click()}
+                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
+                  >
+                    <ImageIcon className="w-4 h-4" /> Anexar Fotos da Correção
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -697,13 +750,13 @@ export default function Desvios() {
                     </Button>
                   ) : (
                     <>
-                      <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
+                      <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("corrigido")}>
                         <Check className="w-4 h-4" /> Aprovar
                       </Button>
                       <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
                         <Ban className="w-4 h-4" /> Reprovar
                       </Button>
-                      <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
+                      <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("corrigido")}>
                         <Archive className="w-4 h-4" /> Encerrar Desvio
                       </Button>
                       <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleStatusChange("Cancelado")}>
@@ -788,7 +841,7 @@ export default function Desvios() {
           >
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-green-600">{dashboardStats.done}</div>
-              <div className="text-xs text-muted-foreground">Concluídos</div>
+              <div className="text-xs text-muted-foreground">Corrigidos</div>
             </CardContent>
           </Card>
           <Card 
@@ -833,7 +886,7 @@ export default function Desvios() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex gap-1">
                     <Badge className={cn("text-[10px]", STATUS_OPTIONS.find(s => s.id === desvio.status)?.color)}>
-                      {desvio.status}
+                      {STATUS_OPTIONS.find(s => s.id === desvio.status)?.label || desvio.status}
                     </Badge>
                     <Badge variant="outline" className={cn("text-[10px]", PRIORITY_OPTIONS.find(p => p.id === desvio.priority)?.color, "text-white border-transparent")}>
                       {desvio.priority}

@@ -177,6 +177,17 @@ export function useUpdateDesvio() {
           console.warn("[wapi-desvio-status-notify] falha:", e);
         }
       }
+
+      // Se for correção (mudança para status corrigido), dispara notificação de correção
+      if (updates.status === "corrigido") {
+        try {
+          await supabase.functions.invoke("wapi-desvio-correction-notify", {
+            body: { desvioId: id, correctorName: profile?.full_name || "Usuário" },
+          });
+        } catch (e) {
+          console.warn("[wapi-desvio-correction-notify] falha:", e);
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["desvios"] });
