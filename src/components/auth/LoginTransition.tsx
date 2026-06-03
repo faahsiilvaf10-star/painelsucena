@@ -12,8 +12,9 @@ interface LoginTransitionProps {
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
   const [phase, setPhase] = useState<"blank" | "logo" | "building" | "welcome" | "fade" | "done">("blank");
-  const { settings } = useSiteSettings();
+  const { settings, isLoading: isSettingsLoading } = useSiteSettings();
   const logoUrl = settings.transition_logo_url || settings.logo_url || logoPrincipal;
+  const isLogoReady = !isSettingsLoading && !!logoUrl;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioEndedRef = useRef(false);
   const visualDoneRef = useRef(false);
@@ -64,7 +65,9 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
   }, []);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("logo"), 300);
+    const t1 = setTimeout(() => {
+      if (isLogoReady) setPhase("logo");
+    }, 300);
     const t2 = setTimeout(() => setPhase("building"), 3500); // Logo fica por 3.2 segundos (antes era 1.2s)
     const t3 = setTimeout(() => setPhase("welcome"), 6500);
     const t4 = setTimeout(() => setPhase("fade"), 9500);
@@ -98,7 +101,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       {/* Phase: Logo Initial */}
       {phase === "logo" && (
         <div className="animate-out fade-out zoom-out duration-1000 flex flex-col items-center">
-          <img src={logoUrl} alt="Logo" className="h-20 object-contain brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-in fade-in zoom-in duration-700" />
+          <img src={logoUrl} alt="Logo" className="h-32 md:h-40 object-contain brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-in fade-in zoom-in duration-700" />
         </div>
       )}
 
