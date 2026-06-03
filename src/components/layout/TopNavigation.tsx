@@ -7,12 +7,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useUserNavOrder } from "@/hooks/useUserNavOrder";
 import { useNavVisibilityRules } from "@/hooks/useNavVisibilityRules";
 import {
-  Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart,
-  Sun, Truck, Bell, FileText, Heart, ShoppingCart,
-  Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
-  BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
-  Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
-  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, Shield, Warehouse, Settings, type LucideIcon
+  Users, LayoutDashboard, FileText, Presentation, Warehouse, 
+  Settings, ShieldCheck, Bell, Newspaper, Leaf, Shield, Target, AlertTriangle, FolderLock, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,11 +23,19 @@ interface NavItem {
 }
 
 const allNavItems: NavItem[] = [
-  { id: "destaques", icon: LayoutDashboard, label: "INTRO", path: "/" },
-  { id: "rdo-hub", icon: FileText, label: "MUSIC", path: "/relatorio-diario-obra" },
-  { id: "reunioes", icon: Presentation, label: "TOURS", path: "/reunioes" },
-  { id: "almoxarifado", icon: Warehouse, label: "MERCH", path: "/almoxarifado" },
-  { id: "rh-hub", icon: Users, label: "INFO", path: "/recursos-humanos" },
+  { id: "destaques", icon: LayoutDashboard, label: "DESTAQUES", path: "/" },
+  { id: "equipamentos", icon: Settings, label: "EQUIPAMENTOS", path: "/equipamentos" },
+  { id: "lembretes", icon: Bell, label: "LEMBRETES", path: "/lembretes" },
+  { id: "reunioes", icon: Presentation, label: "REUNIÕES", path: "/reunioes" },
+  { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
+  { id: "rdo-hub", icon: FileText, label: "RDO", path: "/relatorio-diario-obra" },
+  { id: "arquivos-seguranca", icon: FolderLock, label: "DOCUMENTOS", path: "/arquivos-seguranca" },
+  { id: "instacena", icon: Newspaper, label: "INSTACENA", path: "/instacena" },
+  { id: "meio-ambiente", icon: Leaf, label: "MEIO AMBIENTE", path: "/meio-ambiente" },
+  { id: "seguranca", icon: Shield, label: "SEGURANÇA", path: "/seguranca" },
+  { id: "almoxarifado", icon: Warehouse, label: "ALMOXARIFADO", path: "/almoxarifado" },
+  { id: "planejamento", icon: Target, label: "PLANEJAMENTO", path: "/planejamento" },
+  { id: "emergencia", icon: AlertTriangle, label: "EMERGÊNCIA", path: "/emergencia", isEmergency: true },
 ];
 
 export const TopNavigation = () => {
@@ -42,6 +46,14 @@ export const TopNavigation = () => {
   const { navOrder } = useUserNavOrder();
   const { settings } = useSiteSettings();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
+
+  const effectiveNavOrder = useMemo(() => {
+    if (isAdmin) {
+      return Array.isArray(settings?.nav_order) && settings.nav_order.length > 0
+        ? settings.nav_order : navOrder;
+    }
+    return navOrder;
+  }, [isAdmin, navOrder, settings?.nav_order]);
 
   const visibleNavItems = useMemo(() => {
     const dynamicHiddenItems = profile?.cargo ? getHiddenItemsForCargo(profile.cargo) : [];
@@ -54,51 +66,63 @@ export const TopNavigation = () => {
     });
   }, [isAdmin, profile?.cargo, getHiddenItemsForCargo]);
 
+  const orderedNavItems = useMemo(() => {
+    if (!effectiveNavOrder || effectiveNavOrder.length === 0) return visibleNavItems;
+    const ordered: NavItem[] = [];
+    effectiveNavOrder.forEach((id: string) => {
+      const item = visibleNavItems.find(nav => nav.id === id);
+      if (item) ordered.push(item);
+    });
+    visibleNavItems.forEach(item => {
+      if (!ordered.find(o => o.id === item.id)) ordered.push(item);
+    });
+    return ordered;
+  }, [effectiveNavOrder, visibleNavItems]);
+
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-1 p-1 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
-      {visibleNavItems.map((item) => {
-        const isActive = location.pathname === item.path;
-        return (
-          <Link
-            key={item.id}
-            to={item.path}
-            className={cn(
-              "px-6 py-2 rounded-full text-[11px] font-bold tracking-[0.15em] transition-all duration-300 flex items-center gap-2",
-              isActive 
-                ? "bg-white/15 text-white shadow-inner" 
-                : "text-white/50 hover:text-white hover:bg-white/5"
-            )}
-          >
-            {item.label}
-            {item.id === "destaques" && <span className="opacity-50 font-normal">♫</span>}
-            {item.id === "rdo-hub" && <span className="opacity-50 font-normal">▷</span>}
-            {item.id === "reunioes" && <span className="opacity-50 font-normal">◎</span>}
-            {item.id === "almoxarifado" && <span className="opacity-50 font-normal">👜</span>}
-            {item.id === "rh-hub" && <span className="opacity-50 font-normal">ⓘ</span>}
-          </Link>
-        );
-      })}
-      
-      <div className="w-px h-6 bg-white/10 mx-2" />
-      
-      <button 
-        onClick={() => navigate("/configuracoes")}
-        className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-colors"
-        title="Configurações"
-      >
-        <Settings className="w-4 h-4" />
-      </button>
-      
-      {isAdmin && (
+    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-1 p-1 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 px-1">
+        {orderedNavItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.id}
+              to={item.path}
+              className={cn(
+                "px-4 py-2 rounded-full text-[10px] font-bold tracking-[0.1em] transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                isActive 
+                  ? "bg-white/15 text-white shadow-inner" 
+                  : item.isEmergency 
+                    ? "text-red-500/70 hover:text-red-500 hover:bg-red-500/10"
+                    : "text-white/50 hover:text-white hover:bg-white/5"
+              )}
+            >
+              {item.label}
+              {isActive && <item.icon className={cn("w-3 h-3", item.isEmergency ? "text-red-500 animate-pulse" : "text-white/70")} />}
+            </Link>
+          );
+        })}
+        
+        <div className="w-px h-6 bg-white/10 mx-2 shrink-0" />
+        
         <button 
-          onClick={() => navigate("/admin")}
-          className="p-2 rounded-full text-amber-500/70 hover:text-amber-500 hover:bg-white/5 transition-colors"
-          title="Administração"
+          onClick={() => navigate("/configuracoes")}
+          className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-colors shrink-0"
+          title="Configurações"
         >
-          <ShieldCheck className="w-4 h-4" />
+          <Settings className="w-4 h-4" />
         </button>
-      )}
+        
+        {isAdmin && (
+          <button 
+            onClick={() => navigate("/admin")}
+            className="p-2 rounded-full text-amber-500/70 hover:text-amber-500 hover:bg-white/5 transition-colors shrink-0"
+            title="Administração"
+          >
+            <ShieldCheck className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </nav>
   );
 };
-
