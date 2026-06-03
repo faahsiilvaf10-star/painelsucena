@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown, Play, RefreshCw, Pencil, PencilOff, Settings, ShieldCheck } from "lucide-react";
+import { ChevronDown, Play, RefreshCw, Pencil, PencilOff, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hardRefreshToLatest } from "@/lib/appRefresh";
 
@@ -13,6 +13,9 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { useNavigate } from "react-router-dom";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+
 
 
 
@@ -47,6 +50,9 @@ interface OnlineUsersFooterProps {
 export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
   const navigate = useNavigate();
   const { isAdmin } = useIsAdmin();
+  const { signOut } = useAuth();
+  const { data: profile } = useProfile();
+
 
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
@@ -129,7 +135,23 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
                 </button>
               )}
 
+              <button 
+                onClick={async () => {
+                  const userName = profile?.full_name || "Usuário";
+                  const userAvatar = profile?.avatar_url || undefined;
+                  sessionStorage.setItem("logoutTransitionInProgress", "true");
+                  sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({ userName, userAvatar }));
+                  window.dispatchEvent(new Event("logout-transition"));
+                  try { await signOut(); } catch {}
+                }}
+                className="p-2 rounded-full text-red-500/50 hover:text-red-500 hover:bg-white/5 transition-all group/logout"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              </button>
+
               {canEdit && (
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
