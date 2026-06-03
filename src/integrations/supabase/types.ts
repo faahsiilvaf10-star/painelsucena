@@ -4102,6 +4102,8 @@ export type Database = {
       site_settings: {
         Row: {
           environment: string | null
+          global_background_opacity: number | null
+          global_background_url: string | null
           id: string
           instacena_gif_height: number | null
           instacena_gif_opacity: number | null
@@ -4140,6 +4142,8 @@ export type Database = {
         }
         Insert: {
           environment?: string | null
+          global_background_opacity?: number | null
+          global_background_url?: string | null
           id?: string
           instacena_gif_height?: number | null
           instacena_gif_opacity?: number | null
@@ -4178,6 +4182,8 @@ export type Database = {
         }
         Update: {
           environment?: string | null
+          global_background_opacity?: number | null
+          global_background_url?: string | null
           id?: string
           instacena_gif_height?: number | null
           instacena_gif_opacity?: number | null
