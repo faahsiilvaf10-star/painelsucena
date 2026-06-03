@@ -33,6 +33,18 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const useDock = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "macos-dock";
   const useAura = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "aura";
 
+  const [isLoginTransitioning, setIsLoginTransitioning] = useState(
+    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
+  );
+
+  useEffect(() => {
+    const handler = () => {
+      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
+    };
+    window.addEventListener("login-transition", handler);
+    return () => window.removeEventListener("login-transition", handler);
+  }, []);
+
   useEffect(() => {
     const primaryColor = settings?.primary_color;
     if (primaryColor) {
@@ -49,6 +61,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   }, [settings?.primary_color]);
 
   const layoutReady = isAuthPage || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
+
 
   useEffect(() => {
     const handler = () => {
@@ -71,6 +84,8 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     );
   }
 
+  if (isLoginTransitioning) return null;
+
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className={`h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden ${useAura ? "bg-[#1a1814]" : "bg-background"}`}>
@@ -79,6 +94,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
+
         <div
           className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
             justCompletedTransition ? "animate-fade-in" : ""

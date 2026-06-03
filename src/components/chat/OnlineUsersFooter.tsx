@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
 import { ChevronDown, Play, RefreshCw, Pencil, PencilOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,10 +44,22 @@ interface OnlineUsersFooterProps {
 export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
+  const [isLoginTransitioning, setIsLoginTransitioning] = useState(
+    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
+  );
   const { state } = useSidebar();
   const { settings } = useSiteSettings();
   const { allUsers } = useAllUsers();
   const { isEditMode, toggleEditMode, canEdit } = useEditMode();
+  
+  useEffect(() => {
+    const handler = () => {
+      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
+    };
+    window.addEventListener("login-transition", handler);
+    return () => window.removeEventListener("login-transition", handler);
+  }, []);
+
   
   const isAuraTheme = settings?.ui_theme === "aura";
 
@@ -59,7 +71,10 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const isCollapsedSidebar = state === "collapsed";
   const forbiddenColor = FORBIDDEN_COLORS[currentMonth];
 
+  if (isLoginTransitioning) return null;
+
   return (
+
     <div className={cn(
       "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left,background-color] duration-200 ease-linear",
       isMinimized ? "bg-transparent border-t-0" : isAuraTheme ? "bg-black/60 backdrop-blur-xl border-t border-white/10 shadow-2xl" : "bg-card border-t border-border",
