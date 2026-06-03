@@ -82,11 +82,12 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         <div
           className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
             justCompletedTransition ? "animate-fade-in" : ""
-          } ${useAura ? "pt-0 border-none shadow-none" : ""}`}
+          } ${useAura ? "pt-0 !border-none !shadow-none !m-0 !rounded-none" : ""}`}
         >
           {useAura && <TopNavigation />}
           {children}
         </div>
+
 
 
         {useDock && !isAuthPage && <DockNavigation />}
