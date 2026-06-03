@@ -429,7 +429,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
               <img 
                 src={settings.logo_url || logoPrincipal} 
                 alt="Logo" 
-                className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
+                className="h-10 md:h-12 max-w-[140px] md:max-w-[160px] object-contain" 
               />
               {isAdmin && isEditMode && (
                 <>
