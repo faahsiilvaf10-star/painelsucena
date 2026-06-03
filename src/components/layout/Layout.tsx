@@ -114,16 +114,15 @@ const Layout = ({ children }: LayoutProps) => {
       "flex flex-col h-full overflow-hidden !border-none !shadow-none !m-0 !rounded-none after:hidden before:hidden",
       isAuraTheme ? "bg-[#1a1814] text-white" : ""
     )}>
-
-
-
-      {/* Header removido para o layout Aura */}
+      {/* Header visível para macOS Dock e outros temas, exceto Aura */}
       {!isAuraTheme && (
         <header className={cn(
-          "flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b px-3 md:px-4 relative bg-background"
+          "flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b px-3 md:px-4 relative bg-background",
+          isDockTheme && "border-none shadow-none bg-transparent"
         )}>
+
           {/* Left side */}
-          <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2 z-50">
             {showBackButton && (
               <Tooltip>
                 <TooltipTrigger asChild>
