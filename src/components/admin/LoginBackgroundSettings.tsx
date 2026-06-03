@@ -14,6 +14,8 @@ export function LoginBackgroundSettings() {
   const { settings, updateSettings } = useSiteSettings();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const transitionLogoInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingTransitionLogo, setIsUploadingTransitionLogo] = useState(false);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
