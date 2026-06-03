@@ -37,7 +37,11 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
+  const { settings } = useSiteSettings();
   const { allUsers } = useAllUsers();
+  
+  const isAuraTheme = settings?.ui_theme === "aura";
+
   
   const onlineCount = allUsers.filter(u => u.isOnline && !u.isCurrentUser && !u.cargo?.startsWith("motorista_")).length;
 
