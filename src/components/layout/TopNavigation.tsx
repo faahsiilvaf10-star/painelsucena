@@ -89,7 +89,10 @@ export const TopNavigation = () => {
     return ordered;
   }, [effectiveNavOrder, visibleNavItems]);
 
+  if (isLoginTransitioning) return null;
+
   return (
+
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-1 p-1 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
       <div className="flex items-center gap-1 px-1">
         {orderedNavItems.map((item) => {
