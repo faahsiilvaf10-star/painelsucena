@@ -240,7 +240,7 @@ const Layout = ({ children }: LayoutProps) => {
 
           {/* <SessionTimeIndicator /> removido */}
           <CampaignRibbon />
-          <ThemeToggle />
+          {/* <ThemeToggle /> removido */}
           {!isAuraTheme && <NotificationBell />}
         </div>
       </header>
