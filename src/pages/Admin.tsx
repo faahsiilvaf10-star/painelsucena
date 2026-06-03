@@ -477,8 +477,57 @@ const Admin = () => {
               </CardContent>
             </Card>
 
+            {/* UI Theme Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LayoutTemplate className="w-5 h-5" />
+                  Tema Global do Sistema
+                </CardTitle>
+                <CardDescription>
+                  Escolha o estilo visual padrão para todos os usuários que não personalizaram seu tema.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    { id: "classic", label: "Clássico", desc: "Barra lateral padrão" },
+                    { id: "macos-dock", label: "macOS Dock", desc: "Dock flutuante na parte inferior" },
+                    { id: "aura", label: "Aura (Novo)", desc: "Menu superior flutuante e minimalista" },
+                  ].map((theme) => (
+                    <div
+                      key={theme.id}
+                      className={cn(
+                        "relative flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 group",
+                        settings.ui_theme === theme.id 
+                          ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                          : "border-border bg-card"
+                      )}
+                      onClick={() => {
+                        updateSettings.mutate(
+                          { ui_theme: theme.id },
+                          {
+                            onSuccess: () => toast.success(`Tema global alterado para ${theme.label}`),
+                            onError: () => toast.error("Erro ao atualizar tema"),
+                          }
+                        );
+                      }}
+                    >
+                      <div className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">{theme.label}</div>
+                      <div className="text-[10px] text-muted-foreground text-center line-clamp-2">{theme.desc}</div>
+                      {settings.ui_theme === theme.id && (
+                        <div className="absolute top-2 right-2">
+                          <BadgeCheck className="w-4 h-4 text-primary" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Screensaver Settings */}
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
