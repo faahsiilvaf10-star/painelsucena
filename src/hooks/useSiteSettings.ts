@@ -32,6 +32,8 @@ export interface SiteSettings {
   login_particles_speed: number;
   sidebar_animation: string | null;
   page_loading_img_url: string | null;
+  global_background_url: string | null;
+  global_background_opacity: number;
   updated_at: string;
   updated_by: string | null;
 }
@@ -72,6 +74,8 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   login_particles_speed: 1.0,
   sidebar_animation: "particles",
   page_loading_img_url: null,
+  global_background_url: null,
+  global_background_opacity: 0.1,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -135,6 +139,8 @@ export function useSiteSettings() {
         sidebar_animation: d.sidebar_animation || "particles",
         transition_logo_url: d.transition_logo_url || null,
         page_loading_img_url: d.page_loading_img_url || null,
+        global_background_url: d.global_background_url || null,
+        global_background_opacity: d.global_background_opacity ?? 0.1,
       };
     },
     staleTime: 1000 * 60 * 5,

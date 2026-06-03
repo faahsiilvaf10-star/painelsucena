@@ -30,6 +30,7 @@ import { NavVisibilityManager } from "@/components/admin/NavVisibilityManager";
 import { EnvironmentAccessManager } from "@/components/admin/EnvironmentAccessManager";
 import { EnvironmentAccessDialog } from "@/components/admin/EnvironmentAccessDialog";
 import { LoginBackgroundSettings } from "@/components/admin/LoginBackgroundSettings";
+import { GlobalBackgroundSettings } from "@/components/admin/GlobalBackgroundSettings";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCurrentMonthCampaigns } from "@/data/campaignData";
 import instaCenaLogo from "@/assets/instacena-logo.png";
@@ -523,6 +524,9 @@ const Admin = () => {
             
             {/* Login Background Settings */}
             <LoginBackgroundSettings />
+            
+            {/* Global Background Settings */}
+            <GlobalBackgroundSettings />
 
             {/* Quick Access - Driver Panel */}
             <Card>
