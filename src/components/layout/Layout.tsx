@@ -109,6 +109,41 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
+          {isAdmin && isDockTheme && (
+            <div className="absolute left-2 top-2 z-[60] flex flex-col gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/admin")}
+                    className="h-8 w-8 text-amber-500 hover:text-amber-400 bg-background/90 backdrop-blur-sm rounded-full border border-amber-500/50 shadow-lg"
+                  >
+                    <ShieldCheck className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start">
+                  <p className="text-xs font-semibold">Painel Administrativo</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/configuracoes")}
+                    className="h-8 w-8 text-primary hover:text-primary/80 bg-background/90 backdrop-blur-sm rounded-full border border-primary/50 shadow-lg"
+                  >
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start">
+                  <p className="text-xs font-semibold">Configurações</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
           {showBackButton && (
             <Tooltip>
               <TooltipTrigger asChild>
