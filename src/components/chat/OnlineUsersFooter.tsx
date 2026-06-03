@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown, Play, RefreshCw, Pencil, PencilOff } from "lucide-react";
+import { ChevronDown, Play, RefreshCw, Pencil, PencilOff, Settings, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hardRefreshToLatest } from "@/lib/appRefresh";
 
@@ -11,6 +11,9 @@ import { useAllUsers } from "@/hooks/useAllUsers";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { useNavigate } from "react-router-dom";
+import { useIsAdmin } from "@/hooks/useUserRole";
+
 
 
 
@@ -42,6 +45,9 @@ interface OnlineUsersFooterProps {
 }
 
 export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
+  const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
+
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const [isLoginTransitioning, setIsLoginTransitioning] = useState(
@@ -104,6 +110,25 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
           {isAuraTheme && (
             <div className="flex shrink-0 items-center gap-1 relative z-[60]">
               <NotificationBell />
+              
+              <button 
+                onClick={() => navigate("/configuracoes")}
+                className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-all group/settings"
+                title="Configurações"
+              >
+                <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
+              </button>
+
+              {isAdmin && (
+                <button 
+                  onClick={() => navigate("/admin")}
+                  className="p-2 rounded-full text-amber-500/70 hover:text-amber-500 hover:bg-white/5 transition-all group/admin"
+                  title="Administração"
+                >
+                  <ShieldCheck className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                </button>
+              )}
+
               {canEdit && (
                 <button
                   onClick={(e) => {
@@ -123,6 +148,7 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
               )}
             </div>
           )}
+
 
           {/* Link ForMusic removido */}
 
