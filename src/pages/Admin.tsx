@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { usePageCustomizations } from "@/hooks/usePageCustomizations";
 import { useEnvironment, ENVIRONMENTS } from "@/hooks/useEnvironment";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ import { EnvironmentAccessDialog } from "@/components/admin/EnvironmentAccessDia
 import { LoginBackgroundSettings } from "@/components/admin/LoginBackgroundSettings";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCurrentMonthCampaigns } from "@/data/campaignData";
+import instaCenaLogo from "@/assets/instacena-logo.png";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -48,6 +50,7 @@ const Admin = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isStrictAdmin, isModerator, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
+  const { upsertCustomization, getCustomValue } = usePageCustomizations("instacena");
   const { environment } = useEnvironment();
   const currentEnv = environment || "barcarena";
   const navigate = useNavigate();
@@ -63,8 +66,10 @@ const Admin = () => {
   
   // Site settings state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingInstaCenaLogo, setIsUploadingInstaCenaLogo] = useState(false);
   const [isResendingCampaign, setIsResendingCampaign] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const instaCenaLogoInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all users with their profiles and roles, filtered by environment access
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -214,6 +219,64 @@ const Admin = () => {
     }
   };
 
+  const handleInstaCenaLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    setIsUploadingInstaCenaLogo(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `cms/instacena/page-logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("site-assets")
+        .upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
+
+      await upsertCustomization.mutateAsync({
+        page_key: "instacena",
+        element_key: "page-logo",
+        element_type: "image",
+        image_url: data.publicUrl,
+      });
+      toast.success("Logo do InstaCena atualizada!");
+    } catch (error) {
+      console.error("Error uploading InstaCena logo:", error);
+      toast.error("Erro ao fazer upload da logo.");
+    } finally {
+      setIsUploadingInstaCenaLogo(false);
+    }
+  };
+
+  const handleRestoreDefaultLogo = async () => {
+    try {
+      await updateSettings.mutateAsync({ logo_url: null });
+      toast.success("Logo restaurada para o padrão.");
+    } catch (error) {
+      toast.error("Erro ao restaurar logo.");
+    }
+  };
+
+  const handleRestoreInstaCenaLogo = async () => {
+    try {
+      await upsertCustomization.mutateAsync({
+        page_key: "instacena",
+        element_key: "page-logo",
+        element_type: "image",
+        image_url: null,
+      });
+      toast.success("Logo do InstaCena restaurada para o padrão.");
+    } catch (error) {
+      toast.error("Erro ao restaurar logo do InstaCena.");
+    }
+  };
+
   // Handle resend campaign announcement
   const handleResendCampaign = async () => {
     const monthData = getCurrentMonthCampaigns();
@@ -334,8 +397,8 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-6">
-                  <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center overflow-hidden bg-muted">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center overflow-hidden bg-muted flex-shrink-0">
                     {settings.logo_url ? (
                       <img 
                         src={settings.logo_url} 
@@ -346,7 +409,7 @@ const Admin = () => {
                       <Image className="w-8 h-8 text-muted-foreground" />
                     )}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3 w-full">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -354,23 +417,102 @@ const Admin = () => {
                       onChange={handleLogoUpload}
                       className="hidden"
                     />
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploadingLogo}
-                      variant="outline"
-                    >
-                      {isUploadingLogo ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Enviar Nova Logo
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingLogo}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 sm:flex-none"
+                      >
+                        {isUploadingLogo ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Enviar Nova Logo
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleRestoreDefaultLogo}
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Padrão
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Formatos aceitos: PNG, JPG, SVG. Tamanho máximo: 2MB
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* InstaCena Logo Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Image className="w-5 h-5" />
+                  Logo do InstaCena
+                </CardTitle>
+                <CardDescription>
+                  Altere a logo exibida no topo da página do InstaCena.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center overflow-hidden bg-muted flex-shrink-0">
+                    <img 
+                      src={getCustomValue("page-logo", "image") || instaCenaLogo} 
+                      alt="Logo InstaCena" 
+                      className="w-full h-full object-contain p-2"
+                    />
+                  </div>
+                  <div className="space-y-3 w-full">
+                    <input
+                      ref={instaCenaLogoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleInstaCenaLogoUpload}
+                      className="hidden"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => instaCenaLogoInputRef.current?.click()}
+                        disabled={isUploadingInstaCenaLogo}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 sm:flex-none"
+                      >
+                        {isUploadingInstaCenaLogo ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Enviar Nova Logo
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleRestoreInstaCenaLogo}
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Padrão
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       Formatos aceitos: PNG, JPG, SVG. Tamanho máximo: 2MB
                     </p>
