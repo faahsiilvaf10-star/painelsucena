@@ -236,23 +236,8 @@ const Layout = ({ children }: LayoutProps) => {
               </TooltipContent>
             </Tooltip>
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                  onClick={async () => {
-                    await hardRefreshToLatest({ clearVisualState: true });
-                }}
-                className="flex items-center gap-1 px-1.5 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                aria-label="Recarregar e limpar cache visual"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-medium hidden sm:inline">Recarregar</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-card border">
-              <p className="text-xs">Recarregar e limpar cache visual</p>
-            </TooltipContent>
-          </Tooltip>
+          {/* <Tooltip> removido e movido para o rodapé */}
+
           {/* <SessionTimeIndicator /> removido */}
           <CampaignRibbon />
           <ThemeToggle />
