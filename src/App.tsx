@@ -89,28 +89,28 @@ const PageLoader = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="relative mb-6">
+      <div className="relative mb-6 flex items-center justify-center">
         <img
           src={displayLogo}
           alt="Carregando..."
-          className="h-32 w-32 md:h-40 md:w-40 object-contain animate-[fadePulse_1.8s_ease-in-out_infinite] drop-shadow-xl"
+          className="h-48 w-48 md:h-64 md:w-64 object-contain animate-[fadePulse_1.8s_ease-in-out_infinite] drop-shadow-2xl transition-all duration-300"
         />
-        <div className="absolute -inset-6 border-4 border-primary/20 rounded-full animate-[ping_3s_linear_infinite]" />
-        <div className="absolute -inset-10 border-2 border-primary/10 rounded-full animate-[ping_4s_linear_infinite] delay-700" />
+        <div className="absolute -inset-10 border-4 border-primary/20 rounded-full animate-[ping_3s_linear_infinite]" />
+        <div className="absolute -inset-16 border-2 border-primary/10 rounded-full animate-[ping_4s_linear_infinite] delay-700" />
       </div>
       <div className="flex gap-2">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="w-2 h-2 rounded-full bg-primary animate-bounce shadow-[0_0_8px_rgba(var(--primary),0.5)]"
+            className="w-2.5 h-2.5 rounded-full bg-primary animate-bounce shadow-[0_0_10px_rgba(var(--primary),0.6)]"
             style={{ animationDelay: `${i * 150}ms` }}
           />
         ))}
       </div>
       <style>{`
         @keyframes fadePulse {
-          0%, 100% { opacity: 0.4; transform: scale(0.92); filter: brightness(0.8); }
-          50% { opacity: 1; transform: scale(1.08); filter: brightness(1.2); }
+          0%, 100% { opacity: 0.45; transform: scale(0.92); filter: brightness(0.9) saturate(1.1); }
+          50% { opacity: 1; transform: scale(1.08); filter: brightness(1.2) saturate(1.3); }
         }
       `}</style>
     </div>
