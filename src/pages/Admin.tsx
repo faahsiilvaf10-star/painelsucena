@@ -231,7 +231,7 @@ const Admin = () => {
     setIsUploadingInstaCenaLogo(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `logos/instacena-page-logo-${Date.now()}.${ext}`;
+      const path = `logos/instacena-logo-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("site-assets")
         .upload(path, file, { upsert: true });
