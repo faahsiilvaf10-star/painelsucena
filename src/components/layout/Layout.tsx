@@ -210,8 +210,8 @@ const Layout = ({ children }: LayoutProps) => {
           {/* Frase motivacional removida */}
           
           <div className="flex items-center gap-0.5 md:gap-1">
-            <NotificationBell />
           </div>
+
         </header>
       )}
 
