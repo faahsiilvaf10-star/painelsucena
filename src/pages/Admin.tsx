@@ -246,9 +246,9 @@ const Admin = () => {
         image_url: data.publicUrl,
       });
       toast.success("Logo do InstaCena atualizada!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading InstaCena logo:", error);
-      toast.error("Erro ao fazer upload da logo.");
+      toast.error(`Erro ao fazer upload da logo: ${error.message || "Erro desconhecido"}`);
     } finally {
       setIsUploadingInstaCenaLogo(false);
     }

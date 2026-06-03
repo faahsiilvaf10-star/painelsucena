@@ -60,6 +60,7 @@ export function usePageCustomizations(pageKey?: string) {
       metadata?: Record<string, any> | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
+      const currentEnv = environment || 'barcarena';
 
       const { error } = await supabase
         .from("page_customizations")
@@ -73,7 +74,8 @@ export function usePageCustomizations(pageKey?: string) {
           metadata: params.metadata ?? null,
           updated_by: user?.id ?? null,
           updated_at: new Date().toISOString(),
-        }, { onConflict: "page_key,element_key" });
+          environment: currentEnv,
+        }, { onConflict: "page_key,element_key,environment" });
 
       if (error) throw error;
     },
