@@ -91,9 +91,10 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className={cn(
-        "h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden",
+        "h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden !border-none !shadow-none",
         useAura ? "bg-[#1a1814]" : "bg-background"
       )}>
+
 
         {user && !isDriver && !useDock && !useAura && !isAuthPage && !isEnvSelectionPage && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
