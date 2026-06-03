@@ -1,25 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown, Play, RefreshCw, Pencil, PencilOff, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { ChevronDown, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { hardRefreshToLatest } from "@/lib/appRefresh";
-
 import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAllUsers } from "@/hooks/useAllUsers";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { useEditMode } from "@/contexts/EditModeContext";
-import { useNavigate } from "react-router-dom";
-import { useIsAdmin } from "@/hooks/useUserRole";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
-
-
-
-
-
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   0: { name: "Vermelha", bgClass: "bg-red-500" },
@@ -48,34 +34,10 @@ interface OnlineUsersFooterProps {
 }
 
 export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
-  const navigate = useNavigate();
-  const { isAdmin } = useIsAdmin();
-  const { signOut } = useAuth();
-  const { data: profile } = useProfile();
-
-
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
-  const [isLoginTransitioning, setIsLoginTransitioning] = useState(
-    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
-  );
   const { state } = useSidebar();
-  const { settings } = useSiteSettings();
   const { allUsers } = useAllUsers();
-  const { isEditMode, toggleEditMode, canEdit } = useEditMode();
-  
-  useEffect(() => {
-    const handler = () => {
-      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
-    };
-    window.addEventListener("login-transition", handler);
-    return () => window.removeEventListener("login-transition", handler);
-  }, []);
-
-  
-  const isAuraTheme = settings?.ui_theme === "aura";
-
-
   
   const onlineCount = allUsers.filter(u => u.isOnline && !u.isCurrentUser && !u.cargo?.startsWith("motorista_")).length;
 
@@ -83,19 +45,14 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const isCollapsedSidebar = state === "collapsed";
   const forbiddenColor = FORBIDDEN_COLORS[currentMonth];
 
-  if (isLoginTransitioning) return null;
-
   return (
-
     <div className={cn(
-      "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left,background-color] duration-200 ease-linear",
-      isMinimized ? "bg-transparent border-t-0" : isAuraTheme ? "bg-black/60 backdrop-blur-xl border-t border-white/10 shadow-2xl" : "bg-card border-t border-border",
-      isAuraTheme ? "left-0" : isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
+      "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left] duration-200 ease-linear",
+      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
+      isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
       "max-md:left-0",
-
       "flex items-center"
     )}>
-
 
       {/* Mobile minimize toggle */}
       <button
@@ -112,95 +69,26 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
       </button>
 
       {!isMinimized && (
-        <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 relative min-h-[36px] md:min-h-[40px]">
-          {isAuraTheme && (
-            <div className="flex shrink-0 items-center gap-1 relative z-[60]">
-              <button 
-                onClick={async () => {
-                  const userName = profile?.full_name || "Usuário";
-                  const userAvatar = profile?.avatar_url || undefined;
-                  sessionStorage.setItem("logoutTransitionInProgress", "true");
-                  sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({ userName, userAvatar }));
-                  window.dispatchEvent(new Event("logout-transition"));
-                  try { await signOut(); } catch {}
-                }}
-                className="p-2 rounded-full text-red-500/50 hover:text-red-500 hover:bg-white/5 transition-all group/logout"
-                title="Sair"
-              >
-                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              </button>
-
-              <NotificationBell />
-              
-              <button 
-                onClick={() => navigate("/configuracoes")}
-                className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-all group/settings"
-                title="Configurações"
-              >
-                <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
-              </button>
-
-              {isAdmin && (
-                <button 
-                  onClick={() => navigate("/admin")}
-                  className="p-2 rounded-full text-amber-500/70 hover:text-amber-500 hover:bg-white/5 transition-all group/admin"
-                  title="Administração"
-                >
-                  <ShieldCheck className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                </button>
-              )}
-
-              {canEdit && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleEditMode();
-                  }}
-                  className={cn(
-                    "p-2 rounded-full transition-all group/edit",
-                    isEditMode 
-                      ? "text-primary bg-primary/20" 
-                      : "text-white/50 hover:text-white hover:bg-white/5"
-                  )}
-                  title={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
-                >
-                  {isEditMode ? <PencilOff className="w-4 h-4" /> : <Pencil className="w-4 h-4 group-hover/edit:scale-110 transition-transform" />}
-                </button>
-              )}
-            </div>
-          )}
-
-
-
-          {/* Link ForMusic removido */}
-
-
+        <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-hidden">
+          <a
+            href="https://formusic.lovable.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            aria-label="Abrir ForMusic"
+            title="Abrir ForMusic"
+          >
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground">
+              <Play className="h-2.5 w-2.5 fill-current" />
+            </span>
+            <span className="text-[11px] font-medium whitespace-nowrap hidden sm:inline">
+              Clique no play para ouvir na plataforma ForMusic
+            </span>
+          </a>
           <div className="flex-1 min-w-0 overflow-hidden">
             <NewsTicker />
           </div>
-
-          {/* Botão Recarregar Centralizado */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[60]">
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                await hardRefreshToLatest({ clearVisualState: true });
-              }}
-              className={cn(
-                "pointer-events-auto flex items-center gap-2 px-4 py-1 rounded-full transition-all shadow-lg border whitespace-nowrap",
-                isAuraTheme 
-                  ? "bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md" 
-                  : "bg-background hover:bg-accent text-foreground border-border"
-              )}
-              aria-label="Recarregar e limpar cache visual"
-            >
-              <RefreshCw className="h-4 w-4 animate-[spin_3s_linear_infinite] group-hover:animate-spin" />
-              <span className="text-[10px] font-bold tracking-wider uppercase">Recarregar</span>
-            </button>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 relative z-10">
-
+          <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -233,12 +121,10 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
               <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
               <span
                 className={cn(
-                  "text-[11px] font-medium whitespace-nowrap hidden md:inline",
-                  isAuraTheme ? "text-white/70" : "text-muted-foreground",
-                  !isAuraTheme && isCollapsedSidebar && "md:hidden"
+                  "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
+                  isCollapsedSidebar && "md:hidden"
                 )}
               >
-
                 Cor proibida: {forbiddenColor.name}
               </span>
             </button>

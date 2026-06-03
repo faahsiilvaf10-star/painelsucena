@@ -2,15 +2,12 @@ import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { DockNavigation } from "./DockNavigation";
-import { TopNavigation } from "./TopNavigation";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-
 
 interface PersistentSidebarProps {
   children: ReactNode;
@@ -31,22 +28,11 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0) && !isDriver;
   
+  // Use global theme from site_settings
   const uiTheme = settings?.ui_theme || "classic";
   const useDock = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "macos-dock";
-  const useAura = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "aura";
 
-  const [isLoginTransitioning, setIsLoginTransitioning] = useState(
-    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
-  );
-
-  useEffect(() => {
-    const handler = () => {
-      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
-    };
-    window.addEventListener("login-transition", handler);
-    return () => window.removeEventListener("login-transition", handler);
-  }, []);
-
+  // Apply global primary color from site_settings
   useEffect(() => {
     const primaryColor = settings?.primary_color;
     if (primaryColor) {
@@ -62,8 +48,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     };
   }, [settings?.primary_color]);
 
+  // Wait for auth + profile + settings to load before rendering layout
+  // Skip the loading gate entirely on the auth page to avoid flashing
   const layoutReady = isAuthPage || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
-
 
   useEffect(() => {
     const handler = () => {
@@ -86,42 +73,23 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     );
   }
 
-  if (isLoginTransitioning) return null;
-
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
-      <div className={cn(
-        "h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden !border-none !shadow-none",
-        useAura ? "bg-[#1a1814]" : "bg-background"
-      )}>
-
-
-        {user && !isDriver && !useDock && !useAura && !isAuthPage && !isEnvSelectionPage && (
+      <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
+        {user && !isDriver && !useDock && !isAuthPage && !isEnvSelectionPage && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
-
         <div
-          className={cn(
-            "flex-1 flex flex-col min-w-0 h-full overflow-hidden",
-            justCompletedTransition ? "animate-fade-in" : "",
-            useAura ? "pt-0 !border-none !shadow-none !m-0 !rounded-none after:hidden before:hidden bg-transparent" : ""
-          )}
+          className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
+            justCompletedTransition ? "animate-fade-in" : ""
+          }`}
         >
-          {useAura && <TopNavigation />}
-          <div className={cn("flex-1 overflow-y-auto", useAura ? "bg-[#1a1814]" : "")}>
-            {children}
-          </div>
+          {children}
         </div>
-
-
-
-
-
         {useDock && !isAuthPage && <DockNavigation />}
       </div>
     </SidebarProvider>
   );
 };
-

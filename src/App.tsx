@@ -35,7 +35,7 @@ const AdminSecurity = lazy(() => import("./pages/AdminSecurity"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const DDS = lazy(() => import("./pages/DDS"));
 const Lembretes = lazy(() => import("./pages/Lembretes"));
-// const Reunioes = lazy(() => import("./pages/Reunioes"));
+const Reunioes = lazy(() => import("./pages/Reunioes"));
 const RDO = lazy(() => import("./pages/RDO"));
 const Campanhas = lazy(() => import("./pages/Campanhas"));
 const Pedidos = lazy(() => import("./pages/Pedidos"));
@@ -188,7 +188,7 @@ const App = () => (
                       <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                       <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
                       <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
-                      {/* <Route path="/reunioes" element={<ProtectedRoute><Reunioes /></ProtectedRoute>} /> */}
+                      <Route path="/reunioes" element={<ProtectedRoute><Reunioes /></ProtectedRoute>} />
                       <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
                       <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
                       <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />

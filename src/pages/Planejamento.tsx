@@ -235,8 +235,7 @@ export default function Planejamento() {
   }, [metas]);
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6 bg-transparent border-none">
-
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-lg bg-primary/10">
           <Target className="w-6 h-6 text-primary" />
