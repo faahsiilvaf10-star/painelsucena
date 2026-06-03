@@ -93,10 +93,10 @@ const PageLoader = () => {
         <img
           src={displayLogo}
           alt="Carregando..."
-          className="h-48 w-48 md:h-64 md:w-64 object-contain animate-[fadePulse_1.8s_ease-in-out_infinite] drop-shadow-2xl transition-all duration-300"
+          className="h-40 w-40 md:h-52 md:w-52 object-contain animate-[fadePulse_2.5s_ease-in-out_infinite] drop-shadow-2xl transition-all duration-300"
         />
-        <div className="absolute -inset-10 border-4 border-primary/20 rounded-full animate-[ping_3s_linear_infinite]" />
-        <div className="absolute -inset-16 border-2 border-primary/10 rounded-full animate-[ping_4s_linear_infinite] delay-700" />
+        <div className="absolute -inset-10 border-4 border-primary/20 rounded-full animate-[ping_4s_linear_infinite]" />
+        <div className="absolute -inset-16 border-2 border-primary/10 rounded-full animate-[ping_5s_linear_infinite] delay-700" />
       </div>
       <div className="flex gap-2">
         {[0, 1, 2, 3, 4].map((i) => (
@@ -109,8 +109,8 @@ const PageLoader = () => {
       </div>
       <style>{`
         @keyframes fadePulse {
-          0%, 100% { opacity: 0.45; transform: scale(0.92); filter: brightness(0.9) saturate(1.1); }
-          50% { opacity: 1; transform: scale(1.08); filter: brightness(1.2) saturate(1.3); }
+          0%, 100% { opacity: 0.5; transform: scale(0.95); filter: brightness(0.9) saturate(1.1); }
+          50% { opacity: 1; transform: scale(1.05); filter: brightness(1.15) saturate(1.2); }
         }
       `}</style>
     </div>
