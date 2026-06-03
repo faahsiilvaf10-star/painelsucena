@@ -10,7 +10,7 @@ declare global {
 
 // Servidor Jitsi público que permite embed por iframe sem bloquear o preview.
 // meet.jit.si passou a exigir autenticação em alguns fluxos e meet.ffmuc.net bloqueia frame externo.
-const JITSI_DOMAIN = "meet.systemli.org";
+const JITSI_DOMAIN = "meet.jit.si";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
 
 let scriptPromise: Promise<void> | null = null;
