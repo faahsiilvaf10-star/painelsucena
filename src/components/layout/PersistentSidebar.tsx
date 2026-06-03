@@ -32,7 +32,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const uiTheme = settings?.ui_theme || "classic";
   const useDock = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "macos-dock";
 
-  // Apply global primary color from site_settings
+  // Apply global theme colors and background settings from site_settings
   useEffect(() => {
     const primaryColor = settings?.primary_color;
     if (primaryColor) {
@@ -42,11 +42,19 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
       document.documentElement.style.removeProperty("--primary");
       document.documentElement.style.removeProperty("--ring");
     }
+
+    if (settings?.global_background_url) {
+      document.documentElement.style.setProperty("--bg-opacity", "0.85");
+    } else {
+      document.documentElement.style.setProperty("--bg-opacity", "1");
+    }
+
     return () => {
       document.documentElement.style.removeProperty("--primary");
       document.documentElement.style.removeProperty("--ring");
+      document.documentElement.style.removeProperty("--bg-opacity");
     };
-  }, [settings?.primary_color]);
+  }, [settings?.primary_color, settings?.global_background_url]);
 
   // Wait for auth + profile + settings to load before rendering layout
   // Skip the loading gate entirely on the auth page to avoid flashing
