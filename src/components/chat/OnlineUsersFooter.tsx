@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown, Play } from "lucide-react";
+import { ChevronDown, Play, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hardRefreshToLatest } from "@/lib/appRefresh";
+
 import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -80,9 +82,30 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
         <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-hidden">
           {/* Link ForMusic removido */}
 
-          <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-hidden relative">
             <NewsTicker />
+            
+            {/* Botão Recarregar Centralizado */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  await hardRefreshToLatest({ clearVisualState: true });
+                }}
+                className={cn(
+                  "pointer-events-auto flex items-center gap-2 px-4 py-1 rounded-full transition-all shadow-sm border whitespace-nowrap",
+                  isAuraTheme 
+                    ? "bg-white/10 hover:bg-white/20 text-white border-white/20" 
+                    : "bg-background hover:bg-accent text-foreground border-border"
+                )}
+                aria-label="Recarregar e limpar cache visual"
+              >
+                <RefreshCw className="h-4 w-4 animate-[spin_3s_linear_infinite] hover:animate-spin" />
+                <span className="text-[11px] font-bold tracking-wider uppercase">Recarregar</span>
+              </button>
+            </div>
           </div>
+
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={(e) => {
