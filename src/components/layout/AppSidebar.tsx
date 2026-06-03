@@ -431,6 +431,8 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         <SidebarBackground 
           animation={settings.sidebar_animation || "particles"} 
           particleColors={particleColors}
+          imageUrl={settings.sync_login_bg_to_sidebar ? settings.login_background_url : null}
+          imageOpacity={settings.global_background_opacity || 0.1}
         />
       </div>
       
