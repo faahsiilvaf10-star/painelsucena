@@ -210,33 +210,11 @@ const Layout = ({ children }: LayoutProps) => {
           {/* Frase motivacional removida */}
           
           <div className="flex items-center gap-0.5 md:gap-1">
-            {/* Botão de edição e fita de campanha removidos */}
-
-                    onClick={toggleEditMode}
-                    className={`flex items-center gap-1 px-1.5 py-1 rounded-full transition-colors ${
-                      isEditMode 
-                        ? "text-primary bg-primary/20 hover:bg-primary/30" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    }`}
-                    aria-label={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
-                  >
-                    {isEditMode ? <PencilOff className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
-                    <span className="text-[10px] font-medium hidden sm:inline">
-                      {isEditMode ? "Editando" : "Editar"}
-                    </span>
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-card border">
-                  <p className="text-xs">{isEditMode ? "Desativar modo edição" : "Ativar modo edição em tempo real"}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-            
-            <CampaignRibbon />
             <NotificationBell />
           </div>
         </header>
       )}
+
 
 
       <main className={cn(
