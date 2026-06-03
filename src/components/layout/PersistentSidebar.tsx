@@ -33,6 +33,18 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const useDock = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "macos-dock";
   const useAura = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "aura";
 
+  const [isLoginTransitioning, setIsLoginTransitioning] = useState(
+    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
+  );
+
+  useEffect(() => {
+    const handler = () => {
+      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
+    };
+    window.addEventListener("login-transition", handler);
+    return () => window.removeEventListener("login-transition", handler);
+  }, []);
+
   useEffect(() => {
     const primaryColor = settings?.primary_color;
     if (primaryColor) {
@@ -49,6 +61,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   }, [settings?.primary_color]);
 
   const layoutReady = isAuthPage || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
+
 
   useEffect(() => {
     const handler = () => {
