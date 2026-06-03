@@ -233,8 +233,10 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   }, [updateSettings]);
 
   const handleMobileClose = React.useCallback(() => {
-    // Não fecha mais automaticamente ao navegar
-  }, []);
+    if (sidebarIsMobile) {
+      setOpenMobile(false);
+    }
+  }, [sidebarIsMobile, setOpenMobile]);
 
   // Force collapsed state when locked
   React.useEffect(() => {
