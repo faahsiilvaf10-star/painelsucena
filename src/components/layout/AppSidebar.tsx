@@ -478,7 +478,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         size="icon"
         onClick={lockedCollapsed ? undefined : toggleSidebar}
         disabled={lockedCollapsed}
-        className={`absolute top-1/2 -translate-y-1/2 z-[100] h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all ${isCollapsed ? "-right-10" : "-right-4"} ${
+        className={`absolute top-1/2 -translate-y-1/2 z-[100] h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all hidden md:flex ${isCollapsed ? "-right-10" : "-right-4"} ${
           lockedCollapsed ? "opacity-50 cursor-not-allowed" : ""
         }`}
         style={{ touchAction: 'manipulation' }}
