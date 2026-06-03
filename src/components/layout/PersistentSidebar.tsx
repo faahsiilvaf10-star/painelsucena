@@ -91,7 +91,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {settings?.global_background_url && (
             <div 
-              className="fixed inset-0 pointer-events-none z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+              className="fixed inset-0 pointer-events-none z-[-1] bg-center bg-cover bg-no-repeat transition-opacity duration-300"
               style={{ 
                 backgroundImage: `url(${settings.global_background_url})`,
                 opacity: settings.global_background_opacity ?? 0.1
