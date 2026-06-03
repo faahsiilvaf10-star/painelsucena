@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
@@ -26,7 +26,6 @@ const allNavItems: NavItem[] = [
   { id: "destaques", icon: LayoutDashboard, label: "DESTAQUES", path: "/" },
   { id: "equipamentos", icon: Settings, label: "EQUIPAMENTOS", path: "/equipamentos" },
   { id: "lembretes", icon: Bell, label: "LEMBRETES", path: "/lembretes" },
-  // { id: "reunioes", icon: Presentation, label: "REUNIÕES", path: "/reunioes" },
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   { id: "rdo-hub", icon: FileText, label: "RDO", path: "/relatorio-diario-obra" },
   { id: "arquivos-seguranca", icon: FolderLock, label: "DOCUMENTOS", path: "/arquivos-seguranca" },
@@ -40,7 +39,6 @@ const allNavItems: NavItem[] = [
 
 export const TopNavigation = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { isAdmin } = useIsAdmin();
   const { data: profile } = useProfile();
   const { navOrder } = useUserNavOrder();
@@ -102,14 +100,7 @@ export const TopNavigation = () => {
             </Link>
           );
         })}
-        
-        <div className="w-px h-6 bg-white/10 mx-2 shrink-0" />
-        
-      {/* Botão de configurações removido */}
-
-        
-      {/* Botão de administração removido */}
+      </div>
     </nav>
   );
 };
-
