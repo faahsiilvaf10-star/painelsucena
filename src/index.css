@@ -1686,3 +1686,16 @@ html, body {
   height: 28px;
   min-width: 200px;
 }
+
+/* Global Background Transparency */
+[data-has-global-bg="true"] .bg-background {
+  background-color: hsl(var(--background) / 0.85) !important;
+}
+
+[data-has-global-bg="true"] .bg-card {
+  background-color: hsl(var(--card) / 0.9) !important;
+}
+
+.dark[data-has-global-bg="true"] .bg-background {
+  background-color: hsl(var(--background) / 0.75) !important;
+}
