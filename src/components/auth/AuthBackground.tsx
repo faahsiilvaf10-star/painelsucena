@@ -44,6 +44,7 @@ interface Particle {
   duration: number;
   delay: number;
   opacity: number;
+  color: string;
   type: "small" | "medium" | "large";
   speed: "slow" | "normal" | "fast";
 }
