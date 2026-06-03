@@ -106,11 +106,12 @@ export function AuthBackground() {
         duration: baseDuration + Math.random() * durationVariation,
         delay: Math.random() * 8,
         opacity,
+        color: particleColors[i % particleColors.length],
         type,
         speed,
       };
     });
-  }, [particleCount, particleEnabled, particleSpeed]);
+  }, [particleCount, particleEnabled, particleSpeed, particleColors]);
 
   // Get daily verse based on day of year
   const dailyVerse = useMemo(() => {
