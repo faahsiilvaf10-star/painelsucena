@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Palette, Check, PanelLeft, Monitor } from "lucide-react";
+import { Palette, Check, PanelLeft, Monitor, LayoutTemplate } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
@@ -28,7 +28,15 @@ const UI_THEMES = [
     icon: Monitor,
     preview: "dock",
   },
+  {
+    id: "aura",
+    label: "Aura (Novo)",
+    description: "Menu superior flutuante e minimalista com transições suaves",
+    icon: LayoutTemplate,
+    preview: "aura",
+  },
 ];
+
 
 export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
   const queryClient = useQueryClient();
@@ -69,7 +77,7 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {UI_THEMES.map((theme) => {
             const isSelected = selected === theme.id;
             return (
@@ -103,7 +111,7 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
                         <div className="w-1/2 h-2 bg-foreground/10 rounded" />
                       </div>
                     </div>
-                  ) : (
+                  ) : theme.preview === "dock" ? (
                     <div className="h-full flex flex-col">
                       <div className="flex-1 p-2">
                         <div className="w-3/4 h-2 bg-foreground/15 rounded mb-2" />
@@ -117,7 +125,22 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
                         </div>
                       </div>
                     </div>
+                  ) : (
+                    <div className="h-full flex flex-col">
+                      <div className="flex justify-center pt-2">
+                        <div className="w-2/3 h-2.5 bg-foreground/15 rounded-full flex gap-1 px-1.5 items-center">
+                          <div className="w-1 h-1 rounded-full bg-primary" />
+                          <div className="w-3 h-0.5 bg-foreground/10 rounded-full" />
+                          <div className="w-3 h-0.5 bg-foreground/10 rounded-full" />
+                        </div>
+                      </div>
+                      <div className="flex-1 p-2 flex flex-col items-center justify-center">
+                        <div className="w-1/2 h-1 bg-foreground/10 rounded-full mb-1" />
+                        <div className="w-1/3 h-1 bg-foreground/5 rounded-full" />
+                      </div>
+                    </div>
                   )}
+
                 </div>
 
                 <div className="text-center">
