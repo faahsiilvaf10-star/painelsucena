@@ -103,9 +103,9 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <SidebarInset className="flex flex-col h-full overflow-hidden">
+    <SidebarInset className="flex flex-col h-full overflow-hidden bg-transparent">
       {/* Header with notification bell and theme toggle */}
-      <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4 relative">
+      <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background/50 backdrop-blur-sm px-3 md:px-4 relative">
         
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
@@ -247,7 +247,7 @@ const Layout = ({ children }: LayoutProps) => {
           <NotificationBell />
         </div>
       </header>
-      <main className={`flex-1 overflow-y-auto ${isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14'}`}>
+      <main className={`flex-1 overflow-y-auto bg-transparent ${isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14'}`}>
         {isEditMode && (
           <div className="bg-primary/10 border-b border-primary/30 px-4 py-1.5 flex items-center gap-2 text-primary text-sm">
             <Pencil className="h-3.5 w-3.5 shrink-0 animate-pulse" />

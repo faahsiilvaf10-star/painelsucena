@@ -88,14 +88,16 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {settings?.global_background_url && (
             <div 
-              className="fixed inset-0 pointer-events-none z-[-1] bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+              className="fixed inset-0 pointer-events-none z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
               style={{ 
                 backgroundImage: `url(${settings.global_background_url})`,
                 opacity: settings.global_background_opacity ?? 0.1
               }}
             />
           )}
-          {children}
+          <div className="relative z-10 flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+            {children}
+          </div>
         </div>
         {useDock && !isAuthPage && <DockNavigation />}
       </div>
