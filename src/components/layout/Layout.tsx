@@ -210,10 +210,8 @@ const Layout = ({ children }: LayoutProps) => {
           {/* Frase motivacional removida */}
           
           <div className="flex items-center gap-0.5 md:gap-1">
-            {canEdit && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
+            {/* Botão de edição e fita de campanha removidos */}
+
                     onClick={toggleEditMode}
                     className={`flex items-center gap-1 px-1.5 py-1 rounded-full transition-colors ${
                       isEditMode 
