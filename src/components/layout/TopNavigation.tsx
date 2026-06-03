@@ -26,7 +26,7 @@ const allNavItems: NavItem[] = [
   { id: "destaques", icon: LayoutDashboard, label: "DESTAQUES", path: "/" },
   { id: "equipamentos", icon: Settings, label: "EQUIPAMENTOS", path: "/equipamentos" },
   { id: "lembretes", icon: Bell, label: "LEMBRETES", path: "/lembretes" },
-  { id: "reunioes", icon: Presentation, label: "REUNIÕES", path: "/reunioes" },
+  // { id: "reunioes", icon: Presentation, label: "REUNIÕES", path: "/reunioes" },
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   { id: "rdo-hub", icon: FileText, label: "RDO", path: "/relatorio-diario-obra" },
   { id: "arquivos-seguranca", icon: FolderLock, label: "DOCUMENTOS", path: "/arquivos-seguranca" },

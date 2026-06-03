@@ -73,7 +73,7 @@ const allNavItems: NavItem[] = [
   { id: "equipamentos", icon: Settings, label: "Equipamentos", path: "/equipamentos" },
   
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
-  { id: "reunioes", icon: Video, label: "Reuniões", path: "/reunioes" },
+  // { id: "reunioes", icon: Video, label: "Reuniões", path: "/reunioes" },
   
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   
