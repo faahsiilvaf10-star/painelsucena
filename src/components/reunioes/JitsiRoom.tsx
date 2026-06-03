@@ -10,7 +10,7 @@ declare global {
 
 // Servidor Jitsi público que permite embed por iframe sem bloquear o preview.
 // meet.jit.si passou a exigir autenticação em alguns fluxos e meet.ffmuc.net bloqueia frame externo.
-const JITSI_DOMAIN = "8x8.vc";
+const JITSI_DOMAIN = "meet.jit.si";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
 
 let scriptPromise: Promise<void> | null = null;
@@ -152,7 +152,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
       try {
         const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
-          roomName: `vpaas-magic-cookie-8677c77840134e449232938096f9479e/${embeddedRoomName}`,
+          roomName: embeddedRoomName,
           parentNode: containerRef.current,
           width: "100%",
           height: "100%",
