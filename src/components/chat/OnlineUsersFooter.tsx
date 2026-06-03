@@ -6,6 +6,8 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAllUsers } from "@/hooks/useAllUsers";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   0: { name: "Vermelha", bgClass: "bg-red-500" },
@@ -37,7 +39,11 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
+  const { settings } = useSiteSettings();
   const { allUsers } = useAllUsers();
+  
+  const isAuraTheme = settings?.ui_theme === "aura";
+
   
   const onlineCount = allUsers.filter(u => u.isOnline && !u.isCurrentUser && !u.cargo?.startsWith("motorista_")).length;
 
@@ -47,12 +53,14 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
 
   return (
     <div className={cn(
-      "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left] duration-200 ease-linear",
-      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
-      isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
+      "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left,background-color] duration-200 ease-linear",
+      isMinimized ? "bg-transparent border-t-0" : isAuraTheme ? "bg-black/60 backdrop-blur-xl border-t border-white/10 shadow-2xl" : "bg-card border-t border-border",
+      isAuraTheme ? "left-0" : isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
       "max-md:left-0",
+
       "flex items-center"
     )}>
+
 
       {/* Mobile minimize toggle */}
       <button
@@ -121,10 +129,12 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
               <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
               <span
                 className={cn(
-                  "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
-                  isCollapsedSidebar && "md:hidden"
+                  "text-[11px] font-medium whitespace-nowrap hidden md:inline",
+                  isAuraTheme ? "text-white/70" : "text-muted-foreground",
+                  !isAuraTheme && isCollapsedSidebar && "md:hidden"
                 )}
               >
+
                 Cor proibida: {forbiddenColor.name}
               </span>
             </button>
