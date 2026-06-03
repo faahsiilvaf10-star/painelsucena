@@ -527,7 +527,6 @@ export default function Reunioes() {
               />
             </div>
           </div>
-        </div>
 
         <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
           <AlertDialogContent>
