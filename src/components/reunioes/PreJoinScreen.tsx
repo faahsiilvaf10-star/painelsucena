@@ -82,15 +82,18 @@ export function PreJoinScreen({
 
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      setCameras(devices.filter((d) => d.kind === "videoinput"));
-      setMics(devices.filter((d) => d.kind === "audioinput"));
-      setSpeakers(devices.filter((d) => d.kind === "audiooutput"));
+      const validCameras = devices.filter((d) => d.kind === "videoinput" && d.deviceId);
+      const validMics = devices.filter((d) => d.kind === "audioinput" && d.deviceId);
+      const validSpeakers = devices.filter((d) => d.kind === "audiooutput" && d.deviceId);
+      setCameras(validCameras);
+      setMics(validMics);
+      setSpeakers(validSpeakers);
       if (!selectedCam) {
-        const firstCam = devices.find((d) => d.kind === "videoinput");
+        const firstCam = validCameras[0];
         if (firstCam) setSelectedCam(firstCam.deviceId);
       }
       if (!selectedMic) {
-        const firstMic = devices.find((d) => d.kind === "audioinput");
+        const firstMic = validMics[0];
         if (firstMic) setSelectedMic(firstMic.deviceId);
       }
     } catch {
