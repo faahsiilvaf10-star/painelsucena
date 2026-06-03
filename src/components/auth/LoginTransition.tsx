@@ -134,6 +134,15 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden bg-slate-950 flex items-center justify-center perspective-1000">
+      {settings.global_background_url && (
+        <div 
+          className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000"
+          style={{ 
+            backgroundImage: `url(${settings.global_background_url})`,
+            opacity: phase === "logo" ? (settings.global_background_opacity ?? 0.1) * 2 : 0
+          }}
+        />
+      )}
       {/* 3D Grid Background */}
       <div className="absolute inset-0 opacity-20" 
            style={{ 
