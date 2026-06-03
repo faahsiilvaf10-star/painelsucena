@@ -4,7 +4,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { RefreshCw, Settings, ShieldCheck, LogOut, ArrowLeft } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
