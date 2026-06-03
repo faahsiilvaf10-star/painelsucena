@@ -427,7 +427,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   return (
     <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-visible" style={sidebarStyle}>
       {/* Background com animação e cores personalizadas */}
-      <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar">
+      <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none">
         <SidebarBackground 
           animation={settings.sidebar_animation || "particles"} 
           particleColors={particleColors}
