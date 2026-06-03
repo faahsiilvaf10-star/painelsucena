@@ -31,6 +31,7 @@ export interface SiteSettings {
   login_particles_count: number;
   login_particles_speed: number;
   sidebar_animation: string | null;
+  page_loading_img_url: string | null;
   updated_at: string;
   updated_by: string | null;
 }
@@ -70,6 +71,7 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   login_particles_count: 100,
   login_particles_speed: 1.0,
   sidebar_animation: "particles",
+  page_loading_img_url: null,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -132,6 +134,7 @@ export function useSiteSettings() {
         login_particles_speed: d.login_particles_speed ?? 1.0,
         sidebar_animation: d.sidebar_animation || "particles",
         transition_logo_url: d.transition_logo_url || null,
+        page_loading_img_url: d.page_loading_img_url || null,
       };
     },
     staleTime: 1000 * 60 * 5,

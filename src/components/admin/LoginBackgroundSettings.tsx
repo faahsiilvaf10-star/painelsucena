@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Image, Upload, RotateCcw, Sparkles, Palette, Hash, Zap, MonitorPlay } from "lucide-react";
+import { Image, Upload, RotateCcw, Sparkles, Palette, Hash, Zap, MonitorPlay, Loader2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,8 @@ export function LoginBackgroundSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const transitionLogoInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingTransitionLogo, setIsUploadingTransitionLogo] = useState(false);
+  const loadingImageInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingLoadingImage, setIsUploadingLoadingImage] = useState(false);
   
   // Debounced update for settings that change frequently (colors, sliders)
   const debouncedUpdate = useCallback(
@@ -139,6 +141,52 @@ export function LoginBackgroundSettings() {
     } catch (error) {
       console.error("Error resetting particles:", error);
       toast.error("Erro ao resetar partículas.");
+    }
+  };
+
+  const handleLoadingImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    setIsUploadingLoadingImage(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `loading-img-${Date.now()}.${fileExt}`;
+      const filePath = `loading/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("site-assets")
+        .getPublicUrl(filePath);
+
+      await updateSettings.mutateAsync({ page_loading_img_url: data.publicUrl });
+      toast.success("Imagem de carregamento atualizada!");
+    } catch (error) {
+      console.error("Error uploading loading image:", error);
+      toast.error("Erro ao fazer upload da imagem de carregamento.");
+    } finally {
+      setIsUploadingLoadingImage(false);
+      if (loadingImageInputRef.current) loadingImageInputRef.current.value = "";
+    }
+  };
+
+  const handleResetLoadingImage = async () => {
+    try {
+      await updateSettings.mutateAsync({ page_loading_img_url: null });
+      toast.success("Imagem de carregamento resetada para o padrão.");
+    } catch (error) {
+      console.error("Error resetting loading image:", error);
+      toast.error("Erro ao resetar imagem de carregamento.");
     }
   };
 
@@ -403,6 +451,75 @@ export function LoginBackgroundSettings() {
               <Button
                 onClick={handleResetTransitionLogo}
                 disabled={!settings.transition_logo_url || isUploadingTransitionLogo}
+                variant="ghost"
+                className="w-full sm:w-auto text-muted-foreground"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Voltar ao Padrão
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Loader2 className="w-5 h-5" />
+            Imagem de Carregamento
+          </CardTitle>
+          <CardDescription>
+            Personalize a imagem exibida enquanto as páginas do sistema estão carregando.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="w-full sm:w-48 h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center overflow-hidden bg-muted relative">
+              {settings.page_loading_img_url ? (
+                <img 
+                  src={settings.page_loading_img_url} 
+                  alt="Imagem de carregamento" 
+                  className="max-w-[80%] max-h-[80%] object-contain"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <Loader2 className="w-8 h-8 animate-spin" />
+                  <span className="text-xs">Padrão do Sistema</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex flex-col gap-3 w-full sm:w-auto">
+              <input
+                ref={loadingImageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLoadingImageUpload}
+                className="hidden"
+              />
+              
+              <Button
+                onClick={() => loadingImageInputRef.current?.click()}
+                disabled={isUploadingLoadingImage}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                {isUploadingLoadingImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload de Imagem
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={handleResetLoadingImage}
+                disabled={!settings.page_loading_img_url || isUploadingLoadingImage}
                 variant="ghost"
                 className="w-full sm:w-auto text-muted-foreground"
               >
