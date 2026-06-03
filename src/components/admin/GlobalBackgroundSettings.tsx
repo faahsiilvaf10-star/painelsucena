@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Image, Upload, Trash2, Wallpaper } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Image, Upload, Trash2, Wallpaper, RefreshCw } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -160,6 +161,24 @@ export const GlobalBackgroundSettings = () => {
                 Ajuste a visibilidade da imagem de fundo para não atrapalhar a leitura do conteúdo.
               </p>
             </div>
+          </div>
+        </div>
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
+                Sincronizar com Sidebar
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Quando ativado, a imagem de fundo da tela de login também será aplicada ao sidebar.
+              </p>
+            </div>
+            <Switch 
+              checked={settings.sync_login_bg_to_sidebar}
+              onCheckedChange={(checked) => updateSettings.mutate({ sync_login_bg_to_sidebar: checked })}
+              disabled={isLoading}
+            />
           </div>
         </div>
       </CardContent>

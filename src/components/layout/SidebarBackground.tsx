@@ -26,6 +26,8 @@ interface SidebarBackgroundProps {
   animation?: string;
   bgColor?: string;
   particleColors?: string[];
+  imageUrl?: string | null;
+  imageOpacity?: number;
 }
 
 function isLightColor(color?: string): boolean {
@@ -89,7 +91,13 @@ function getShapeStyle(animation: string, size: number): React.CSSProperties {
   }
 }
 
-export function SidebarBackground({ animation = "particles", bgColor, particleColors }: SidebarBackgroundProps) {
+export function SidebarBackground({ 
+  animation = "particles", 
+  bgColor, 
+  particleColors,
+  imageUrl,
+  imageOpacity = 0.5
+}: SidebarBackgroundProps) {
   const particles = useMemo(() => generateParticles(40), []);
   const light = isLightColor(bgColor);
 
@@ -128,6 +136,15 @@ export function SidebarBackground({ animation = "particles", bgColor, particleCo
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {imageUrl && (
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
+          style={{ 
+            backgroundImage: `url(${imageUrl})`,
+            opacity: imageOpacity 
+          }}
+        />
+      )}
       {particles.map((particle, index) => {
         const shapeStyle = getShapeStyle(animation, particle.size);
         const color = getParticleColor(index);

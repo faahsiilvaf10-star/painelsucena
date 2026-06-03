@@ -1,0 +1,1 @@
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS sync_login_bg_to_sidebar BOOLEAN DEFAULT false;
