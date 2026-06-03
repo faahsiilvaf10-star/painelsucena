@@ -480,7 +480,8 @@ const Admin = () => {
 
 
             {/* Theme Settings */}
-            <ThemePicker />
+            <ThemePicker userId={user?.id} />
+
 
             {/* Screensaver Settings */}
             <Card>

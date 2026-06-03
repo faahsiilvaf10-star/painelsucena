@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface ThemePickerProps {
-  userId: string;
+  userId?: string;
   currentTheme?: string | null;
 }
 
@@ -30,7 +30,7 @@ const UI_THEMES = [
   },
 ];
 
-export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
+export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps = {}) => {
   const queryClient = useQueryClient();
   const { settings, updateSettings } = useSiteSettings();
   const globalTheme = (settings as any)?.ui_theme || "classic";
