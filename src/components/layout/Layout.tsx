@@ -26,6 +26,9 @@ import { NewsButton } from "./NewsButton";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { Pencil, PencilOff } from "lucide-react";
 import { hardRefreshToLatest } from "@/lib/appRefresh";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { cn } from "@/lib/utils";
+
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -78,7 +81,9 @@ const Layout = ({ children }: LayoutProps) => {
   const { data: profile } = useProfile();
   const { signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { settings } = useSiteSettings();
   const { isEditMode, toggleEditMode, canEdit } = useEditMode();
+
   const navigate = useNavigate();
   const location = useLocation();
   const showBackButton = location.pathname !== "/dashboard" && location.pathname !== "/";
