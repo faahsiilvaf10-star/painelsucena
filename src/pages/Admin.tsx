@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Eye, Globe, MonitorOff } from "lucide-react";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
+import { ThemePicker } from "@/components/settings/ThemePicker";
 import { Label } from "@/components/ui/label";
 import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
@@ -477,6 +478,9 @@ const Admin = () => {
               </CardContent>
             </Card>
 
+
+            {/* Theme Settings */}
+            <ThemePicker />
 
             {/* Screensaver Settings */}
             <Card>
