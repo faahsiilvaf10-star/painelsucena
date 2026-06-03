@@ -71,7 +71,10 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const isCollapsedSidebar = state === "collapsed";
   const forbiddenColor = FORBIDDEN_COLORS[currentMonth];
 
+  if (isLoginTransitioning) return null;
+
   return (
+
     <div className={cn(
       "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left,background-color] duration-200 ease-linear",
       isMinimized ? "bg-transparent border-t-0" : isAuraTheme ? "bg-black/60 backdrop-blur-xl border-t border-white/10 shadow-2xl" : "bg-card border-t border-border",
