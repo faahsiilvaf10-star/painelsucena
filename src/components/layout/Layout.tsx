@@ -85,8 +85,10 @@ const Layout = ({ children }: LayoutProps) => {
   
   const isDriver = profile?.cargo && (profile.cargo === "motorista_pipa" || profile.cargo === "motorista_munk");
   const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0) && !isDriver;
-  const uiTheme = (profile as any)?.ui_theme || "classic";
+  const uiTheme = (profile as any)?.ui_theme || (settings as any)?.ui_theme || "classic";
   const isDockTheme = uiTheme === "macos-dock";
+  const isAuraTheme = uiTheme === "aura";
+
   
   // Enable global chat push notifications
   useChatNotifications();
@@ -103,9 +105,16 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <SidebarInset className="flex flex-col h-full overflow-hidden">
+    <SidebarInset className={cn(
+      "flex flex-col h-full overflow-hidden",
+      isAuraTheme ? "bg-[#1a1814] text-white" : ""
+    )}>
       {/* Header with notification bell and theme toggle */}
-      <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4 relative">
+      <header className={cn(
+        "flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b px-3 md:px-4 relative",
+        isAuraTheme ? "bg-transparent border-white/5" : "bg-background"
+      )}>
+
         
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
@@ -247,7 +256,12 @@ const Layout = ({ children }: LayoutProps) => {
           <NotificationBell />
         </div>
       </header>
-      <main className={`flex-1 overflow-y-auto ${isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14'}`}>
+      <main className={cn(
+        "flex-1 overflow-y-auto",
+        isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14',
+        isAuraTheme ? "mt-20 px-6" : ""
+      )}>
+
         {isEditMode && (
           <div className="bg-primary/10 border-b border-primary/30 px-4 py-1.5 flex items-center gap-2 text-primary text-sm">
             <Pencil className="h-3.5 w-3.5 shrink-0 animate-pulse" />
