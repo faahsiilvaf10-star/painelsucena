@@ -122,7 +122,7 @@ const Layout = ({ children }: LayoutProps) => {
         )}>
 
           {/* Left side */}
-          <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2 z-50">
             {showBackButton && (
               <Tooltip>
                 <TooltipTrigger asChild>
