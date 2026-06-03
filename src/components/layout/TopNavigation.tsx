@@ -44,6 +44,18 @@ export const TopNavigation = () => {
   const { navOrder } = useUserNavOrder();
   const { settings } = useSiteSettings();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
+  const [isLoginTransitioning, setIsLoginTransitioning] = React.useState(
+    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
+  );
+
+  React.useEffect(() => {
+    const handler = () => {
+      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
+    };
+    window.addEventListener("login-transition", handler);
+    return () => window.removeEventListener("login-transition", handler);
+  }, []);
+
 
   const effectiveNavOrder = useMemo(() => {
     if (isAdmin) {
