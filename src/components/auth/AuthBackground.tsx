@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 // Bible verses array - one for each day of the year
 const bibleVerses = [
@@ -48,6 +49,8 @@ interface Particle {
 }
 
 export function AuthBackground() {
+  const { settings } = useSiteSettings();
+
   // Generate random particles with varied sizes
   const particles = useMemo<Particle[]>(() => {
     return Array.from({ length: 100 }, (_, i) => {
@@ -107,74 +110,86 @@ export function AuthBackground() {
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
-      {/* Main black background with centered gray radial gradient */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(
-            ellipse 80% 60% at 50% 50%,
-            hsl(220, 10%, 25%) 0%,
-            hsl(220, 12%, 18%) 25%,
-            hsl(220, 15%, 12%) 50%,
-            hsl(220, 18%, 6%) 75%,
-            hsl(0, 0%, 0%) 100%
-          )`
-        }}
-      />
+      {settings.login_background_url ? (
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${settings.login_background_url})` }}
+        >
+          {/* Overlay to ensure readability if the image is too bright */}
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+      ) : (
+        <>
+          {/* Main black background with centered gray radial gradient */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(
+                ellipse 80% 60% at 50% 50%,
+                hsl(220, 10%, 25%) 0%,
+                hsl(220, 12%, 18%) 25%,
+                hsl(220, 15%, 12%) 50%,
+                hsl(220, 18%, 6%) 75%,
+                hsl(0, 0%, 0%) 100%
+              )`
+            }}
+          />
 
-      {/* Subtle inner glow for depth */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(
-            circle at 50% 45%,
-            rgba(100, 110, 130, 0.15) 0%,
-            transparent 45%
-          )`
-        }}
-      />
+          {/* Subtle inner glow for depth */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(
+                circle at 50% 45%,
+                rgba(100, 110, 130, 0.15) 0%,
+                transparent 45%
+              )`
+            }}
+          />
 
-      {/* Floating particles with varied sizes and speeds */}
-      {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className={`absolute rounded-full ${
-            particle.speed === "slow" 
-              ? "animate-float-slow" 
-              : particle.speed === "normal" 
-                ? "animate-float-normal" 
-                : "animate-float-fast"
-          } ${
-            particle.type === "large"
-              ? "bg-white/30"
-              : "bg-white/20"
-          }`}
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            opacity: particle.opacity,
-            animationDuration: `${particle.duration}s`,
-            animationDelay: `${particle.delay}s`,
-            boxShadow: particle.type === "large"
-              ? `0 0 ${particle.size}px ${particle.size / 2}px rgba(255, 255, 255, 0.15)`
-              : "none",
-          }}
-        />
-      ))}
+          {/* Floating particles with varied sizes and speeds */}
+          {particles.map((particle) => (
+            <div
+              key={particle.id}
+              className={`absolute rounded-full ${
+                particle.speed === "slow" 
+                  ? "animate-float-slow" 
+                  : particle.speed === "normal" 
+                    ? "animate-float-normal" 
+                    : "animate-float-fast"
+              } ${
+                particle.type === "large"
+                  ? "bg-white/30"
+                  : "bg-white/20"
+              }`}
+              style={{
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                opacity: particle.opacity,
+                animationDuration: `${particle.duration}s`,
+                animationDelay: `${particle.delay}s`,
+                boxShadow: particle.type === "large"
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px rgba(255, 255, 255, 0.15)`
+                  : "none",
+              }}
+            />
+          ))}
 
-      {/* Vignette effect on edges */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(
-            ellipse at center,
-            transparent 40%,
-            rgba(0, 0, 0, 0.5) 100%
-          )`
-        }}
-      />
+          {/* Vignette effect on edges */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(
+                ellipse at center,
+                transparent 40%,
+                rgba(0, 0, 0, 0.5) 100%
+              )`
+            }}
+          />
+        </>
+      )}
 
       {/* Daily Bible verse at bottom */}
       <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center px-6 text-center animate-fade-in">
