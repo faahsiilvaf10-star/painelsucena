@@ -58,11 +58,17 @@ export const GlobalBackgroundSettings = () => {
     }
   };
 
-  const handleOpacityChange = async (value: number[]) => {
+  const handleOpacityChange = (value: number[]) => {
+    setLocalOpacity(value[0]);
+  };
+
+  const handleOpacityCommit = async (value: number[]) => {
     try {
       await updateSettings.mutateAsync({ global_background_opacity: value[0] });
+      setLocalOpacity(null);
     } catch (error) {
       console.error("Error updating opacity:", error);
+      toast.error("Erro ao salvar opacidade.");
     }
   };
 
