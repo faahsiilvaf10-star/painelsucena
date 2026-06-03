@@ -106,12 +106,15 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
           className={cn(
             "flex-1 flex flex-col min-w-0 h-full overflow-hidden",
             justCompletedTransition ? "animate-fade-in" : "",
-            useAura ? "pt-0 !border-none !shadow-none !m-0 !rounded-none after:hidden before:hidden" : ""
+            useAura ? "pt-0 !border-none !shadow-none !m-0 !rounded-none after:hidden before:hidden bg-transparent" : ""
           )}
         >
           {useAura && <TopNavigation />}
-          {children}
+          <div className={cn("flex-1 overflow-y-auto", useAura ? "bg-[#1a1814]" : "")}>
+            {children}
+          </div>
         </div>
+
 
 
 
