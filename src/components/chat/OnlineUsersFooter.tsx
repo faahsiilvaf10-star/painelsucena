@@ -6,6 +6,8 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAllUsers } from "@/hooks/useAllUsers";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   0: { name: "Vermelha", bgClass: "bg-red-500" },
