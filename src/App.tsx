@@ -93,24 +93,24 @@ const PageLoader = () => {
         <img
           src={displayLogo}
           alt="Carregando..."
-          className="h-28 w-28 md:h-36 md:w-36 object-contain animate-[fadePulse_2.5s_ease-in-out_infinite] drop-shadow-2xl transition-all duration-300"
+          className="h-28 w-28 md:h-36 md:w-36 object-contain animate-[fadePulse_4s_ease-in-out_infinite] drop-shadow-2xl transition-all duration-300"
         />
-        <div className="absolute -inset-6 border-4 border-primary/20 rounded-full animate-[ping_4s_linear_infinite]" />
-        <div className="absolute -inset-10 border-2 border-primary/10 rounded-full animate-[ping_5s_linear_infinite] delay-700" />
+        <div className="absolute -inset-6 border-4 border-primary/20 rounded-full animate-[ping_6s_linear_infinite]" />
+        <div className="absolute -inset-10 border-2 border-primary/10 rounded-full animate-[ping_8s_linear_infinite] delay-1000" />
       </div>
       <div className="flex gap-1.5">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce shadow-[0_0_6px_rgba(var(--primary),0.5)]"
-            style={{ animationDelay: `${i * 150}ms` }}
+            style={{ animationDelay: `${i * 250}ms`, animationDuration: '1.5s' }}
           />
         ))}
       </div>
       <style>{`
         @keyframes fadePulse {
-          0%, 100% { opacity: 0.5; transform: scale(0.95); filter: brightness(0.9) saturate(1.1); }
-          50% { opacity: 1; transform: scale(1.05); filter: brightness(1.15) saturate(1.2); }
+          0%, 100% { opacity: 0.5; transform: scale(0.97); filter: brightness(0.9) saturate(1.1); }
+          50% { opacity: 1; transform: scale(1.03); filter: brightness(1.1) saturate(1.2); }
         }
       `}</style>
     </div>
