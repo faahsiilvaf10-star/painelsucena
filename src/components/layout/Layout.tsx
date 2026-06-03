@@ -220,8 +220,9 @@ const Layout = ({ children }: LayoutProps) => {
       <main className={cn(
         "flex-1 overflow-y-auto",
         isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14',
-        isAuraTheme ? "mt-20 px-6" : ""
+        isAuraTheme ? "mt-0 pt-20 px-6" : ""
       )}>
+
 
         {isEditMode && (
           <div className="bg-primary/10 border-b border-primary/30 px-4 py-1.5 flex items-center gap-2 text-primary text-sm">
