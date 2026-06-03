@@ -483,7 +483,7 @@ export default function Reunioes() {
               sidePanelOpen ? "lg:grid-cols-[1fr_360px]" : "lg:grid-cols-1"
             }`}
           >
-            <div className="min-h-0 bg-black">
+            <div className="flex-1 min-h-0 bg-black relative">
               <JitsiRoom
                 ref={jitsiRef}
                 {...({
