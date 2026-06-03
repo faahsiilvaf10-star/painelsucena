@@ -112,9 +112,10 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
       </button>
 
       {!isMinimized && (
-        <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-hidden relative min-h-[36px] md:min-h-[40px]">
+        <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 relative min-h-[36px] md:min-h-[40px]">
           {isAuraTheme && (
             <div className="flex shrink-0 items-center gap-1 relative z-[60]">
+
               <NotificationBell />
               
               <button 
