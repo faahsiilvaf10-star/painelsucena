@@ -9,6 +9,8 @@ import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAllUsers } from "@/hooks/useAllUsers";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+
 
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
