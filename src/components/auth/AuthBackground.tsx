@@ -54,7 +54,7 @@ export function AuthBackground() {
   const particleCount = settings.login_particles_count ?? 100;
   const particleEnabled = settings.login_particles_enabled ?? true;
   const particleSpeed = settings.login_particles_speed ?? 1.0;
-  const particleColor = settings.login_particles_color === "white" ? "rgba(255, 255, 255, 1)" : settings.login_particles_color;
+  const particleColor = settings.login_particles_color || "white";
 
   // Generate random particles with varied sizes
   const particles = useMemo<Particle[]>(() => {
@@ -147,7 +147,7 @@ export function AuthBackground() {
                 animationDuration: `${particle.duration}s`,
                 animationDelay: `${particle.delay}s`,
                 boxShadow: particle.type === "large"
-                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor.replace("1)", "0.15)")}`
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor}`
                   : "none",
               }}
             />
@@ -203,7 +203,7 @@ export function AuthBackground() {
                 animationDuration: `${particle.duration}s`,
                 animationDelay: `${particle.delay}s`,
                 boxShadow: particle.type === "large"
-                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor.replace("1)", "0.15)")}`
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor}`
                   : "none",
               }}
             />
