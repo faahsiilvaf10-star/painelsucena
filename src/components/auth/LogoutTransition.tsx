@@ -12,8 +12,9 @@ interface LogoutTransitionProps {
 
 export function LogoutTransition({ onComplete, userName, userAvatar, reason = "manual" }: LogoutTransitionProps) {
   const [phase, setPhase] = useState<"blank" | "logo" | "goodbye" | "fade" | "done">("blank");
-  const { settings } = useSiteSettings();
+  const { settings, isLoading: isSettingsLoading } = useSiteSettings();
   const logoUrl = settings.transition_logo_url || settings.logo_url || logoPrincipal;
+  const isLogoReady = !isSettingsLoading && !!logoUrl;
   const isTimeout = reason === "timeout";
   const displayName = userName || "Usuário";
   const audioEndedRef = useRef(false);
@@ -45,7 +46,9 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
   }, []);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("logo"), 300);
+    const t1 = setTimeout(() => {
+      if (isLogoReady) setPhase("logo");
+    }, 300);
     const t2 = setTimeout(() => setPhase("goodbye"), 1500);
     const t3 = setTimeout(() => setPhase("fade"), 4500);
     const t4 = setTimeout(() => {
@@ -90,7 +93,7 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
         <img
           src={logoUrl}
           alt="Logo"
-          className="h-16 max-w-[280px] object-contain"
+          className="h-28 md:h-32 max-w-[320px] object-contain"
           style={{ filter: "brightness(1.1)" }}
         />
       </div>
