@@ -32,7 +32,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const uiTheme = settings?.ui_theme || "classic";
   const useDock = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "macos-dock";
 
-  // Apply global primary color from site_settings
+  // Apply global theme colors and background settings from site_settings
   useEffect(() => {
     const primaryColor = settings?.primary_color;
     if (primaryColor) {
@@ -42,11 +42,19 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
       document.documentElement.style.removeProperty("--primary");
       document.documentElement.style.removeProperty("--ring");
     }
+
+    if (settings?.global_background_url) {
+      document.documentElement.style.setProperty("--bg-opacity", "0.85");
+    } else {
+      document.documentElement.style.setProperty("--bg-opacity", "1");
+    }
+
     return () => {
       document.documentElement.style.removeProperty("--primary");
       document.documentElement.style.removeProperty("--ring");
+      document.documentElement.style.removeProperty("--bg-opacity");
     };
-  }, [settings?.primary_color]);
+  }, [settings?.primary_color, settings?.global_background_url]);
 
   // Wait for auth + profile + settings to load before rendering layout
   // Skip the loading gate entirely on the auth page to avoid flashing
@@ -75,7 +83,12 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
-      <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
+      <div 
+        className={`h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden ${
+          settings?.global_background_url ? "bg-transparent" : "bg-background"
+        }`}
+        data-has-global-bg={!!settings?.global_background_url}
+      >
         {user && !isDriver && !useDock && !isAuthPage && !isEnvSelectionPage && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
@@ -88,7 +101,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {settings?.global_background_url && (
             <div 
-              className="fixed inset-0 pointer-events-none z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+              className="fixed inset-0 pointer-events-none z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-300"
               style={{ 
                 backgroundImage: `url(${settings.global_background_url})`,
                 opacity: settings.global_background_opacity ?? 0.1

@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const GlobalBackgroundSettings = () => {
   const { settings, updateSettings, isLoading } = useSiteSettings();
   const [isUploading, setIsUploading] = useState(false);
+  const [localOpacity, setLocalOpacity] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,11 +58,17 @@ export const GlobalBackgroundSettings = () => {
     }
   };
 
-  const handleOpacityChange = async (value: number[]) => {
+  const handleOpacityChange = (value: number[]) => {
+    setLocalOpacity(value[0]);
+  };
+
+  const handleOpacityCommit = async (value: number[]) => {
     try {
       await updateSettings.mutateAsync({ global_background_opacity: value[0] });
+      setLocalOpacity(null);
     } catch (error) {
       console.error("Error updating opacity:", error);
+      toast.error("Erro ao salvar opacidade.");
     }
   };
 
@@ -137,15 +144,16 @@ export const GlobalBackgroundSettings = () => {
               <div className="flex justify-between items-center">
                 <Label>Opacidade da Imagem</Label>
                 <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
-                  {Math.round((settings.global_background_opacity || 0) * 100)}%
+                  {Math.round((localOpacity !== null ? localOpacity : (settings.global_background_opacity || 0.1)) * 100)}%
                 </span>
               </div>
               <Slider
-                value={[settings.global_background_opacity || 0.1]}
+                value={[localOpacity !== null ? localOpacity : (settings.global_background_opacity || 0.1)]}
                 min={0}
                 max={1}
                 step={0.01}
                 onValueChange={handleOpacityChange}
+                onValueCommit={handleOpacityCommit}
                 disabled={isLoading || !settings.global_background_url}
               />
               <p className="text-xs text-muted-foreground">
