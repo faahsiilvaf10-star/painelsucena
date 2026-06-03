@@ -48,9 +48,10 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   return (
     <div className={cn(
       "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left,background-color] duration-200 ease-linear",
-      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
-      isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
+      isMinimized ? "bg-transparent border-t-0" : isAuraTheme ? "bg-black/60 backdrop-blur-xl border-t border-white/10 shadow-2xl" : "bg-card border-t border-border",
+      isAuraTheme ? "left-0" : isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
       "max-md:left-0",
+
       "flex items-center"
     )}>
 
@@ -122,10 +123,12 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
               <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
               <span
                 className={cn(
-                  "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
-                  isCollapsedSidebar && "md:hidden"
+                  "text-[11px] font-medium whitespace-nowrap hidden md:inline",
+                  isAuraTheme ? "text-white/70" : "text-muted-foreground",
+                  !isAuraTheme && isCollapsedSidebar && "md:hidden"
                 )}
               >
+
                 Cor proibida: {forbiddenColor.name}
               </span>
             </button>
