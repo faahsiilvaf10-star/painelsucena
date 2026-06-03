@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown, Play } from "lucide-react";
+import { ChevronDown, Play, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAllUsers } from "@/hooks/useAllUsers";
+import { hardRefreshToLatest } from "@/lib/appRefresh";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   0: { name: "Vermelha", bgClass: "bg-red-500" },
@@ -85,8 +87,30 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
               Clique no play para ouvir na plataforma ForMusic
             </span>
           </a>
-          <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-4">
             <NewsTicker />
+            
+            <div className="hidden md:flex flex-shrink-0 items-center justify-center">
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={async () => {
+                        await hardRefreshToLatest({ clearVisualState: true });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-all active:scale-95 shadow-sm border border-border/50"
+                      aria-label="Recarregar sistema"
+                    >
+                      <RefreshCw className="h-4 w-4 animate-[spin_10s_linear_infinite] hover:animate-[spin_2s_linear_infinite]" />
+                      <span className="text-[11px] font-bold tracking-tight uppercase">Recarregar</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="bg-card border text-[11px]">
+                    Recarregar sistema e limpar cache visual
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
