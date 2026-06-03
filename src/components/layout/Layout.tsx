@@ -4,7 +4,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { RefreshCw, Settings, ShieldCheck, LogOut, ArrowLeft } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
@@ -109,51 +109,6 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
-          {isAdmin && isDockTheme && (
-            <div className="fixed left-4 top-4 z-[9999] flex flex-col gap-3 pointer-events-auto">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/admin");
-                      }}
-                      className="h-10 w-10 text-amber-500 hover:text-amber-400 bg-background/95 backdrop-blur-md rounded-full border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:scale-110 active:scale-95 transition-all duration-300"
-                    >
-                      <ShieldCheck className="h-6 w-6" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" align="center" className="z-[10000]">
-                    <p className="text-sm font-bold">Painel Administrativo</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/configuracoes");
-                      }}
-                      className="h-10 w-10 text-primary hover:text-primary/80 bg-background/95 backdrop-blur-md rounded-full border border-primary/50 shadow-[0_0_15px_rgba(var(--primary),0.3)] hover:scale-110 active:scale-95 transition-all duration-300"
-                    >
-                      <Settings className="h-6 w-6" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" align="center" className="z-[10000]">
-                    <p className="text-sm font-bold">Configurações</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          )}
           {showBackButton && (
             <Tooltip>
               <TooltipTrigger asChild>
