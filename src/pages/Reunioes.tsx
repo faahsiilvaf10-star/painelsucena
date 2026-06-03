@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
@@ -384,7 +385,7 @@ export default function Reunioes() {
         activeMeeting.created_by &&
         activeMeeting.created_by === user.id
     );
-    return (
+    return createPortal(
       <div className="fixed inset-0 z-[100] flex h-dvh w-dvw flex-col overflow-hidden bg-background">
           <div className="flex shrink-0 items-center justify-between gap-3 overflow-x-auto border-b bg-background/95 px-4 py-2 backdrop-blur-sm">
             <div className="flex min-w-max items-center gap-2 text-sm">
@@ -592,7 +593,8 @@ export default function Reunioes() {
           roomName={activeMeeting.room_name}
           snapshots={meetingSnapshots.map((s) => s.url)}
         />
-      </div>
+      </div>,
+      document.body
     );
   }
 
