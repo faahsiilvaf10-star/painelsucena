@@ -35,6 +35,7 @@ export interface SiteSettings {
 const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> & { id: string; updated_at: string; updated_by: null } = {
   id: "",
   logo_url: null,
+  transition_logo_url: null,
   sidebar_color: "#1e2235",
   nav_order: [
     "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
