@@ -416,10 +416,22 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   // Sempre usa os tokens do tema (--sidebar-*) que respeitam tema claro/escuro.
   const sidebarStyle: React.CSSProperties = {};
 
+  const particleColors = useMemo(() => {
+    const colors = [settings.login_particles_color || "white"];
+    if (settings.login_particles_color2) colors.push(settings.login_particles_color2);
+    if (settings.login_particles_color3) colors.push(settings.login_particles_color3);
+    return colors;
+  }, [settings.login_particles_color, settings.login_particles_color2, settings.login_particles_color3]);
+
   return (
     <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-visible" style={sidebarStyle}>
-      {/* Background sutil padrão (sem animações personalizadas) */}
-      <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar" />
+      {/* Background com animação e cores personalizadas */}
+      <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar">
+        <SidebarBackground 
+          animation={settings.sidebar_animation || "particles"} 
+          particleColors={particleColors}
+        />
+      </div>
       
       {/* Header with Logo - clickable for admin/moderator to change */}
       <SidebarHeader className={`border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-1.5" : "p-2 md:p-3"}`}>

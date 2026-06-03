@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import debounce from "lodash/debounce";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,21 @@ export function LoginBackgroundSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const transitionLogoInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingTransitionLogo, setIsUploadingTransitionLogo] = useState(false);
+  
+  // Debounced update for settings that change frequently (colors, sliders)
+  const debouncedUpdate = useCallback(
+    debounce((updates: any) => {
+      updateSettings.mutate(updates);
+    }, 500),
+    [updateSettings.mutate]
+  );
+
+  // Clean up debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedUpdate.cancel();
+    };
+  }, [debouncedUpdate]);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -235,14 +251,14 @@ export function LoginBackgroundSettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={settings.login_particles_color === "white" ? "#ffffff" : settings.login_particles_color}
-                    onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
-                    className="w-12 h-9 p-1"
+                    value={settings.login_particles_color && settings.login_particles_color.startsWith("#") ? settings.login_particles_color : "#ffffff"}
+                    onChange={(e) => debouncedUpdate({ login_particles_color: e.target.value })}
+                    className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
-                    value={settings.login_particles_color}
-                    onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
+                    defaultValue={settings.login_particles_color}
+                    onChange={(e) => debouncedUpdate({ login_particles_color: e.target.value })}
                     placeholder="Cor 1 (Ex: white ou #ffffff)"
                     className="flex-1"
                   />
@@ -251,14 +267,14 @@ export function LoginBackgroundSettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={settings.login_particles_color2 || "#ffffff"}
-                    onChange={(e) => updateSettings.mutate({ login_particles_color2: e.target.value })}
-                    className="w-12 h-9 p-1"
+                    value={settings.login_particles_color2 && settings.login_particles_color2.startsWith("#") ? settings.login_particles_color2 : "#ffffff"}
+                    onChange={(e) => debouncedUpdate({ login_particles_color2: e.target.value })}
+                    className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
-                    value={settings.login_particles_color2 || ""}
-                    onChange={(e) => updateSettings.mutate({ login_particles_color2: e.target.value || null })}
+                    defaultValue={settings.login_particles_color2 || ""}
+                    onChange={(e) => debouncedUpdate({ login_particles_color2: e.target.value || null })}
                     placeholder="Cor 2 (Opcional)"
                     className="flex-1"
                   />
@@ -267,14 +283,14 @@ export function LoginBackgroundSettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={settings.login_particles_color3 || "#ffffff"}
-                    onChange={(e) => updateSettings.mutate({ login_particles_color3: e.target.value })}
-                    className="w-12 h-9 p-1"
+                    value={settings.login_particles_color3 && settings.login_particles_color3.startsWith("#") ? settings.login_particles_color3 : "#ffffff"}
+                    onChange={(e) => debouncedUpdate({ login_particles_color3: e.target.value })}
+                    className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
-                    value={settings.login_particles_color3 || ""}
-                    onChange={(e) => updateSettings.mutate({ login_particles_color3: e.target.value || null })}
+                    defaultValue={settings.login_particles_color3 || ""}
+                    onChange={(e) => debouncedUpdate({ login_particles_color3: e.target.value || null })}
                     placeholder="Cor 3 (Opcional)"
                     className="flex-1"
                   />
@@ -295,7 +311,7 @@ export function LoginBackgroundSettings() {
                 min={0}
                 max={300}
                 step={10}
-                onValueChange={(vals) => updateSettings.mutate({ login_particles_count: vals[0] })}
+                onValueChange={(vals) => debouncedUpdate({ login_particles_count: vals[0] })}
               />
             </div>
 
@@ -312,7 +328,7 @@ export function LoginBackgroundSettings() {
                 min={0.1}
                 max={5}
                 step={0.1}
-                onValueChange={(vals) => updateSettings.mutate({ login_particles_speed: vals[0] })}
+                onValueChange={(vals) => debouncedUpdate({ login_particles_speed: vals[0] })}
               />
             </div>
 

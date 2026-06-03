@@ -25,10 +25,16 @@ function generateParticles(count: number): Particle[] {
 interface SidebarBackgroundProps {
   animation?: string;
   bgColor?: string;
+  particleColors?: string[];
 }
 
 function isLightColor(color?: string): boolean {
   if (!color) return false;
+  
+  // Handle common color names or hex
+  if (color === "white" || color === "#ffffff" || color === "#fff") return true;
+  if (color === "black" || color === "#000000" || color === "#000") return false;
+
   const match = color.match(/hsl\(\s*[\d.]+\s*,\s*[\d.]+%?\s*,\s*([\d.]+)%?\s*\)/);
   if (match) return parseFloat(match[1]) > 50;
   return false;
@@ -83,7 +89,7 @@ function getShapeStyle(animation: string, size: number): React.CSSProperties {
   }
 }
 
-export function SidebarBackground({ animation = "particles", bgColor }: SidebarBackgroundProps) {
+export function SidebarBackground({ animation = "particles", bgColor, particleColors }: SidebarBackgroundProps) {
   const particles = useMemo(() => generateParticles(40), []);
   const light = isLightColor(bgColor);
 
@@ -92,38 +98,51 @@ export function SidebarBackground({ animation = "particles", bgColor }: SidebarB
   }
 
   const animationClass = `animate-sidebar-${animation}`;
-  const particleColorClass = light
-    ? {
-        particles: "bg-black/15",
-        stars: "bg-amber-600/30",
-        rain: "bg-blue-600/25",
-        fireflies: "bg-orange-500/40",
-        snow: "bg-gray-500/25",
-        matrix: "bg-green-700/35",
-      }[animation] || "bg-black/15"
-    : {
-        particles: "bg-white/20",
-        stars: "bg-yellow-200/40",
-        rain: "bg-blue-300/30",
-        fireflies: "bg-amber-300/50",
-        snow: "bg-white/40",
-        matrix: "bg-green-400/40",
-      }[animation] || "bg-white/20";
+  
+  // Use custom colors if provided, otherwise fallback to defaults
+  const getParticleColor = (index: number) => {
+    if (particleColors && particleColors.length > 0) {
+      return particleColors[index % particleColors.length];
+    }
+
+    if (light) {
+      return {
+        particles: "rgba(0,0,0,0.15)",
+        stars: "rgba(217,119,6,0.3)",
+        rain: "rgba(37,99,235,0.25)",
+        fireflies: "rgba(249,115,22,0.4)",
+        snow: "rgba(107,114,128,0.25)",
+        matrix: "rgba(21,128,61,0.35)",
+      }[animation] || "rgba(0,0,0,0.15)";
+    }
+
+    return {
+      particles: "rgba(255,255,255,0.2)",
+      stars: "rgba(254,240,138,0.4)",
+      rain: "rgba(147,197,253,0.3)",
+      fireflies: "rgba(252,211,77,0.5)",
+      snow: "rgba(255,255,255,0.4)",
+      matrix: "rgba(74,222,128,0.4)",
+    }[animation] || "rgba(255,255,255,0.2)";
+  };
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      {particles.map((particle) => {
+      {particles.map((particle, index) => {
         const shapeStyle = getShapeStyle(animation, particle.size);
+        const color = getParticleColor(index);
+        
         return (
           <div
             key={particle.id}
-            className={`absolute ${particleColorClass} ${animationClass}`}
+            className={`absolute ${animationClass}`}
             style={{
               left: `${particle.x}%`,
               top: `${particle.y}%`,
               opacity: particle.opacity,
               animationDuration: `${particle.duration}s`,
               animationDelay: `${particle.delay}s`,
+              backgroundColor: color,
               ...shapeStyle,
             }}
           />
