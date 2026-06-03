@@ -422,14 +422,16 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
       <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar" />
       
       {/* Header with Logo - clickable for admin/moderator to change */}
-      <SidebarHeader className={`border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-1.5" : "border-b p-2 md:p-3"}`}>
+      <SidebarHeader className={`border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-1.5" : "p-2 md:p-3"}`}>
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
-            <div className="relative group">
+            <div className={`relative group ${!settings.logo_url ? "border-b border-sidebar-border/50 w-full pb-2 md:pb-3 flex justify-center" : ""}`}>
               <img 
                 src={settings.logo_url || logoPrincipal} 
                 alt="Logo" 
-                className="h-10 md:h-12 max-w-[140px] md:max-w-[160px] object-contain" 
+                className={settings.logo_url 
+                  ? "h-20 md:h-24 max-w-[200px] md:max-w-[240px] object-contain -mt-2 mb-[-8px] transition-all duration-300" 
+                  : "h-10 md:h-12 max-w-[140px] md:max-w-[160px] object-contain"} 
               />
               {isAdmin && isEditMode && (
                 <>
