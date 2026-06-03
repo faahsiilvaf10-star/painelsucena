@@ -115,8 +115,8 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         const text = chars[Math.floor(Math.random() * chars.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
-        ctx.fillStyle = drops[i] * fontSize < 30 ? "#d1fae5" : "#22c55e";
-        ctx.shadowColor = "#22c55e";
+        ctx.fillStyle = drops[i] * fontSize < 30 ? "#bfdbfe" : "#3b82f6";
+        ctx.shadowColor = "#3b82f6";
         ctx.shadowBlur = 8;
         ctx.fillText(text, x, y);
         if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
