@@ -235,9 +235,9 @@ export function LoginBackgroundSettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={settings.login_particles_color === "white" ? "#ffffff" : settings.login_particles_color}
+                    value={settings.login_particles_color && settings.login_particles_color.startsWith("#") ? settings.login_particles_color : "#ffffff"}
                     onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
-                    className="w-12 h-9 p-1"
+                    className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
@@ -251,9 +251,9 @@ export function LoginBackgroundSettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={settings.login_particles_color2 || "#ffffff"}
+                    value={settings.login_particles_color2 && settings.login_particles_color2.startsWith("#") ? settings.login_particles_color2 : "#ffffff"}
                     onChange={(e) => updateSettings.mutate({ login_particles_color2: e.target.value })}
-                    className="w-12 h-9 p-1"
+                    className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
@@ -267,9 +267,9 @@ export function LoginBackgroundSettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={settings.login_particles_color3 || "#ffffff"}
+                    value={settings.login_particles_color3 && settings.login_particles_color3.startsWith("#") ? settings.login_particles_color3 : "#ffffff"}
                     onChange={(e) => updateSettings.mutate({ login_particles_color3: e.target.value })}
-                    className="w-12 h-9 p-1"
+                    className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
