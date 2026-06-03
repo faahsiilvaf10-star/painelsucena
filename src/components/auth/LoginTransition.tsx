@@ -13,7 +13,7 @@ interface LoginTransitionProps {
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
   const [phase, setPhase] = useState<"blank" | "logo" | "building" | "welcome" | "fade" | "done">("blank");
   const { settings } = useSiteSettings();
-  const logoUrl = settings.logo_url || logoPrincipal;
+  const logoUrl = settings.transition_logo_url || settings.logo_url || logoPrincipal;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioEndedRef = useRef(false);
   const visualDoneRef = useRef(false);
