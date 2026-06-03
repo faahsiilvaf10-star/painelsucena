@@ -57,8 +57,12 @@ export const GlobalBackgroundSettings = () => {
     }
   };
 
-  const handleOpacityChange = (value: number[]) => {
-    updateSettings.mutate({ global_background_opacity: value[0] });
+  const handleOpacityChange = async (value: number[]) => {
+    try {
+      await updateSettings.mutateAsync({ global_background_opacity: value[0] });
+    } catch (error) {
+      console.error("Error updating opacity:", error);
+    }
   };
 
   return (
