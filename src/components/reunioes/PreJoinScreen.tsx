@@ -48,35 +48,66 @@ export function PreJoinScreen({
   const [error, setError] = useState<string | null>(null);
 
   const startStream = async (camId?: string, micId?: string) => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+
+    const tracks: MediaStreamTrack[] = [];
+    let videoFailed = false;
+    let audioFailed = false;
+
     try {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const videoStream = await navigator.mediaDevices.getUserMedia({
         video: camId ? { deviceId: { exact: camId } } : true,
+        audio: false,
+      });
+      tracks.push(...videoStream.getVideoTracks());
+    } catch {
+      videoFailed = true;
+    }
+
+    try {
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        video: false,
         audio: micId ? { deviceId: { exact: micId } } : true,
       });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setError(null);
+      tracks.push(...audioStream.getAudioTracks());
+    } catch {
+      audioFailed = true;
+    }
+
+    const stream = new MediaStream(tracks);
+    streamRef.current = stream;
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+
+    try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      setCameras(devices.filter((d) => d.kind === "videoinput"));
-      setMics(devices.filter((d) => d.kind === "audioinput"));
-      setSpeakers(devices.filter((d) => d.kind === "audiooutput"));
+      const validCameras = devices.filter((d) => d.kind === "videoinput" && d.deviceId);
+      const validMics = devices.filter((d) => d.kind === "audioinput" && d.deviceId);
+      const validSpeakers = devices.filter((d) => d.kind === "audiooutput" && d.deviceId);
+      setCameras(validCameras);
+      setMics(validMics);
+      setSpeakers(validSpeakers);
       if (!selectedCam) {
-        const firstCam = devices.find((d) => d.kind === "videoinput");
+        const firstCam = validCameras[0];
         if (firstCam) setSelectedCam(firstCam.deviceId);
       }
       if (!selectedMic) {
-        const firstMic = devices.find((d) => d.kind === "audioinput");
+        const firstMic = validMics[0];
         if (firstMic) setSelectedMic(firstMic.deviceId);
       }
-    } catch (e: any) {
-      setError(
-        e?.name === "NotAllowedError"
-          ? "Permissão de câmera/microfone negada. Habilite nas configurações do navegador."
-          : "Não foi possível acessar câmera ou microfone."
-      );
+    } catch {
+      /* ignore */
+    }
+
+    if (videoFailed && audioFailed) {
+      setError("Câmera e microfone indisponíveis no navegador. Você ainda pode entrar e ativar dentro da reunião.");
+    } else if (videoFailed) {
+      setError("Câmera indisponível. Você ainda pode entrar com áudio e ativar a câmera dentro da reunião.");
+    } else if (audioFailed) {
+      setError("Microfone indisponível. Você ainda pode entrar com câmera e ativar o áudio dentro da reunião.");
+    } else {
+      setError(null);
     }
   };
 
@@ -227,7 +258,7 @@ export function PreJoinScreen({
           <Button variant="outline" className="flex-1" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button className="flex-1" onClick={handleJoin} disabled={!!error}>
+          <Button className="flex-1" onClick={handleJoin}>
             Entrar agora
           </Button>
         </div>
