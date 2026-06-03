@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User, Home, Hammer, Construction } from "lucide-react";
+import { User } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
 
@@ -11,7 +11,8 @@ interface LoginTransitionProps {
 }
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
-  const [phase, setPhase] = useState<"blank" | "logo" | "building" | "welcome" | "fade" | "done">("blank");
+  const [phase, setPhase] = useState<"blank" | "logo" | "matrix" | "welcome" | "fade" | "done">("blank");
+  const matrixCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const { settings, isLoading: isSettingsLoading } = useSiteSettings();
   const logoUrl = settings.transition_logo_url || settings.logo_url || logoPrincipal;
   const isLogoReady = !isSettingsLoading && !!logoUrl;
@@ -68,7 +69,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     const t1 = setTimeout(() => {
       if (isLogoReady) setPhase("logo");
     }, 300);
-    const t2 = setTimeout(() => setPhase("building"), 3500); // Logo fica por 3.2 segundos (antes era 1.2s)
+    const t2 = setTimeout(() => setPhase("matrix"), 3500);
     const t3 = setTimeout(() => setPhase("welcome"), 6500);
     const t4 = setTimeout(() => setPhase("fade"), 9500);
     const t5 = setTimeout(() => {
