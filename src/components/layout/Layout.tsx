@@ -253,7 +253,7 @@ const Layout = ({ children }: LayoutProps) => {
               <p className="text-xs">Recarregar e limpar cache visual</p>
             </TooltipContent>
           </Tooltip>
-          <SessionTimeIndicator />
+          {/* <SessionTimeIndicator /> removido */}
           <CampaignRibbon />
           <ThemeToggle />
           <NotificationBell />
