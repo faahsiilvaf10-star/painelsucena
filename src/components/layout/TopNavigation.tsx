@@ -78,6 +78,27 @@ export const TopNavigation = () => {
           </Link>
         );
       })}
+      
+      <div className="w-px h-6 bg-white/10 mx-2" />
+      
+      <button 
+        onClick={() => navigate("/configuracoes")}
+        className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+        title="Configurações"
+      >
+        <Settings className="w-4 h-4" />
+      </button>
+      
+      {isAdmin && (
+        <button 
+          onClick={() => navigate("/admin")}
+          className="p-2 rounded-full text-amber-500/70 hover:text-amber-500 hover:bg-white/5 transition-colors"
+          title="Administração"
+        >
+          <ShieldCheck className="w-4 h-4" />
+        </button>
+      )}
     </nav>
   );
 };
+
