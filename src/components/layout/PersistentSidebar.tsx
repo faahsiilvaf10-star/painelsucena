@@ -96,6 +96,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
             />
           )}
           <div className="relative z-10 flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+            <SidebarTrigger className="fixed top-4 left-4 z-[60] md:hidden bg-background/80 backdrop-blur shadow-sm border border-border" />
             {children}
           </div>
         </div>
