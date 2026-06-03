@@ -44,10 +44,22 @@ interface OnlineUsersFooterProps {
 export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
+  const [isLoginTransitioning, setIsLoginTransitioning] = useState(
+    () => sessionStorage.getItem("loginTransitionInProgress") === "true"
+  );
   const { state } = useSidebar();
   const { settings } = useSiteSettings();
   const { allUsers } = useAllUsers();
   const { isEditMode, toggleEditMode, canEdit } = useEditMode();
+  
+  useEffect(() => {
+    const handler = () => {
+      setIsLoginTransitioning(sessionStorage.getItem("loginTransitionInProgress") === "true");
+    };
+    window.addEventListener("login-transition", handler);
+    return () => window.removeEventListener("login-transition", handler);
+  }, []);
+
   
   const isAuraTheme = settings?.ui_theme === "aura";
 
