@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Image, Upload, RotateCcw, Sparkles, Palette, Hash, Zap } from "lucide-react";
+import { Image, Upload, RotateCcw, Sparkles, Palette, Hash, Zap, MonitorPlay } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
