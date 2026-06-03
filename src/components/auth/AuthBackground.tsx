@@ -150,11 +150,11 @@ export function AuthBackground() {
                 width: `${particle.size}px`,
                 height: `${particle.size}px`,
                 opacity: particle.opacity,
-                backgroundColor: particleColor,
+                backgroundColor: particle.color,
                 animationDuration: `${particle.duration}s`,
                 animationDelay: `${particle.delay}s`,
                 boxShadow: particle.type === "large"
-                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor}`
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particle.color}`
                   : "none",
               }}
             />
