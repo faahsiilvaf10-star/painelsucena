@@ -82,10 +82,19 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
           </div>
         )}
         <div
-          className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
+          className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden relative ${
             justCompletedTransition ? "animate-fade-in" : ""
           }`}
         >
+          {settings?.global_background_url && (
+            <div 
+              className="fixed inset-0 pointer-events-none z-[-1] bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+              style={{ 
+                backgroundImage: `url(${settings.global_background_url})`,
+                opacity: settings.global_background_opacity ?? 0.1
+              }}
+            />
+          )}
           {children}
         </div>
         {useDock && !isAuthPage && <DockNavigation />}
