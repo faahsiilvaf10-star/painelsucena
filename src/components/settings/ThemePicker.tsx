@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Palette, Check, PanelLeft, Monitor } from "lucide-react";
+import { Palette, Check, PanelLeft, Monitor, LayoutTemplate } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
@@ -28,7 +28,15 @@ const UI_THEMES = [
     icon: Monitor,
     preview: "dock",
   },
+  {
+    id: "aura",
+    label: "Aura (Novo)",
+    description: "Menu superior flutuante e minimalista com transições suaves",
+    icon: LayoutTemplate,
+    preview: "aura",
+  },
 ];
+
 
 export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
   const queryClient = useQueryClient();
@@ -69,7 +77,7 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {UI_THEMES.map((theme) => {
             const isSelected = selected === theme.id;
             return (
