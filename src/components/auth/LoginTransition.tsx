@@ -106,28 +106,12 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Phase: Building Animation */}
-      {phase === "building" && (
-        <div className="relative w-64 h-64 flex items-center justify-center">
-          {/* Construction Elements */}
-          <div className="absolute animate-bounce-slow">
-             <Home className="w-32 h-32 text-blue-400 opacity-20" />
-          </div>
-          
-          {/* Wireframe Box Building */}
-          <div className="relative w-40 h-40 animate-spin-slow">
-            <div className="absolute inset-0 border-2 border-blue-500/40 rounded-sm translate-z-10 animate-pulse" />
-            <div className="absolute inset-0 border-2 border-blue-500/40 rounded-sm -translate-z-10" />
-            <div className="absolute inset-0 border-2 border-blue-500/20 rotate-45" />
-          </div>
-
-          {/* Floating Icons */}
-          <Hammer className="absolute top-0 left-0 w-8 h-8 text-amber-400 animate-hammer-swing" />
-          <Construction className="absolute bottom-4 right-0 w-10 h-10 text-orange-500 animate-pulse" />
-          
-          {/* Text */}
-          <div className="absolute -bottom-12 w-full text-center">
-            <p className="text-blue-400 text-xs font-mono tracking-widest uppercase animate-pulse">
+      {/* Phase: Matrix Animation */}
+      {phase === "matrix" && (
+        <div className="relative w-full h-full flex items-center justify-center">
+          <canvas ref={matrixCanvasRef} className="absolute inset-0 w-full h-full" />
+          <div className="relative z-10 text-center">
+            <p className="text-green-400 text-sm md:text-base font-mono tracking-[0.3em] uppercase animate-pulse drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
               Construindo ambiente seguro...
             </p>
           </div>
