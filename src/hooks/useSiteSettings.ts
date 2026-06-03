@@ -122,6 +122,7 @@ export function useSiteSettings() {
         login_particles_color: d.login_particles_color || "white",
         login_particles_count: d.login_particles_count ?? 100,
         login_particles_speed: d.login_particles_speed ?? 1.0,
+        transition_logo_url: d.transition_logo_url || null,
       };
     },
     staleTime: 1000 * 60 * 5,
