@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User } from "lucide-react";
+import { User, Cpu, ShieldCheck, Database, Server, Network } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
 
@@ -153,12 +153,72 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
       {/* Phase: Matrix Animation */}
       {phase === "matrix" && (
-        <div className="relative w-full h-full flex items-center justify-center">
-          <canvas ref={matrixCanvasRef} className="absolute inset-0 w-full h-full" />
-          <div className="relative z-10 text-center">
-            <p className="text-green-400 text-sm md:text-base font-mono tracking-[0.3em] uppercase animate-pulse drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
-              Construindo ambiente seguro...
-            </p>
+        <div className="relative w-full h-full flex flex-col items-center justify-center">
+          <canvas ref={matrixCanvasRef} className="absolute inset-0 w-full h-full opacity-40" />
+          
+          <div className="relative z-10 flex flex-col items-center gap-12 max-w-2xl w-full px-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 w-full">
+              <div className="flex flex-col items-center gap-3 group">
+                <div className="w-16 h-16 rounded-xl bg-slate-900/50 border border-green-500/30 flex items-center justify-center relative overflow-hidden">
+                  <Cpu className="w-8 h-8 text-green-400 animate-pulse" />
+                  <div className="absolute inset-0 bg-green-500/10 animate-[pulse_2s_infinite]" />
+                </div>
+                <span className="text-[10px] font-mono text-green-500/70 tracking-tighter uppercase">Processors: Online</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-3 group">
+                <div className="w-16 h-16 rounded-xl bg-slate-900/50 border border-green-500/30 flex items-center justify-center relative overflow-hidden">
+                  <Database className="w-8 h-8 text-green-400 animate-bounce" style={{ animationDuration: '3s' }} />
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-500/20 animate-[loading_2s_infinite]" />
+                </div>
+                <span className="text-[10px] font-mono text-green-500/70 tracking-tighter uppercase">Database: Syncing</span>
+              </div>
+
+              <div className="flex flex-col items-center gap-3 group">
+                <div className="w-16 h-16 rounded-xl bg-slate-900/50 border border-green-500/30 flex items-center justify-center relative overflow-hidden">
+                  <ShieldCheck className="w-8 h-8 text-green-400" />
+                  <div className="absolute inset-0 border-2 border-green-500/20 rounded-xl animate-ping" style={{ animationDuration: '4s' }} />
+                </div>
+                <span className="text-[10px] font-mono text-green-500/70 tracking-tighter uppercase">Security: Active</span>
+              </div>
+
+              <div className="hidden md:flex flex-col items-center gap-3 group">
+                <div className="w-16 h-16 rounded-xl bg-slate-900/50 border border-green-500/30 flex items-center justify-center relative overflow-hidden">
+                  <Server className="w-8 h-8 text-green-400" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-full h-px bg-green-500/20 animate-[scan_2s_infinite]" />
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono text-green-500/70 tracking-tighter uppercase">Load: 12%</span>
+              </div>
+
+              <div className="hidden md:flex flex-col items-center gap-3 group">
+                <div className="w-16 h-16 rounded-xl bg-slate-900/50 border border-green-500/30 flex items-center justify-center relative overflow-hidden">
+                  <Network className="w-8 h-8 text-green-400 animate-[spin_8s_linear_infinite]" />
+                </div>
+                <span className="text-[10px] font-mono text-green-500/70 tracking-tighter uppercase">Traffic: Encrypted</span>
+              </div>
+
+              <div className="hidden md:flex flex-col items-center gap-3 group">
+                <div className="w-16 h-16 rounded-xl bg-slate-900/50 border border-green-500/30 flex items-center justify-center relative overflow-hidden">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-6 bg-green-500/40 animate-[pulse_1.5s_infinite_0s]" />
+                    <div className="w-2 h-8 bg-green-500/60 animate-[pulse_1.5s_infinite_0.2s]" />
+                    <div className="w-2 h-4 bg-green-500/30 animate-[pulse_1.5s_infinite_0.4s]" />
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono text-green-500/70 tracking-tighter uppercase">Frequency: Stable</span>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center space-y-4">
+              <p className="text-green-400 text-sm md:text-base font-mono tracking-[0.3em] uppercase animate-pulse drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
+                Construindo ambiente seguro...
+              </p>
+              <div className="w-64 h-1.5 bg-slate-900 border border-green-500/20 rounded-full overflow-hidden mx-auto">
+                <div className="h-full bg-green-500 animate-[loading_3s_ease-in-out_infinite]" />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -222,6 +282,14 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         }
         .animate-bounce-slow {
           animation: bounce-slow 3s ease-in-out infinite;
+        }
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+        @keyframes loading {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </div>
