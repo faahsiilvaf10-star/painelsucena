@@ -213,7 +213,7 @@ const Layout = ({ children }: LayoutProps) => {
 
         
         <div className="flex items-center gap-0.5 md:gap-1">
-          {canEdit && (
+          {canEdit && !isAuraTheme && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button

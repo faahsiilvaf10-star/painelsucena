@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown, Play, RefreshCw } from "lucide-react";
+import { ChevronDown, Play, RefreshCw, Pencil, PencilOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hardRefreshToLatest } from "@/lib/appRefresh";
 
@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAllUsers } from "@/hooks/useAllUsers";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { useEditMode } from "@/contexts/EditModeContext";
+
 
 
 
@@ -45,8 +47,10 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const { state } = useSidebar();
   const { settings } = useSiteSettings();
   const { allUsers } = useAllUsers();
+  const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   
   const isAuraTheme = settings?.ui_theme === "aura";
+
 
   
   const onlineCount = allUsers.filter(u => u.isOnline && !u.isCurrentUser && !u.cargo?.startsWith("motorista_")).length;
@@ -83,10 +87,28 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
       {!isMinimized && (
         <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-hidden relative min-h-[36px] md:min-h-[40px]">
           {isAuraTheme && (
-            <div className="flex shrink-0 items-center relative z-[60]">
+            <div className="flex shrink-0 items-center gap-1 relative z-[60]">
               <NotificationBell />
+              {canEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleEditMode();
+                  }}
+                  className={cn(
+                    "p-2 rounded-full transition-all group/edit",
+                    isEditMode 
+                      ? "text-primary bg-primary/20" 
+                      : "text-white/50 hover:text-white hover:bg-white/5"
+                  )}
+                  title={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
+                >
+                  {isEditMode ? <PencilOff className="w-4 h-4" /> : <Pencil className="w-4 h-4 group-hover/edit:scale-110 transition-transform" />}
+                </button>
+              )}
             </div>
           )}
+
           {/* Link ForMusic removido */}
 
 
