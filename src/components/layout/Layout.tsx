@@ -243,7 +243,7 @@ const Layout = ({ children }: LayoutProps) => {
           </Tooltip>
           {/* <SessionTimeIndicator /> */}
           <CampaignRibbon />
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
           <NotificationBell />
         </div>
       </header>
