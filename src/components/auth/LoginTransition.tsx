@@ -87,6 +87,51 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     };
   }, [onComplete]);
 
+  // Matrix rain effect
+  useEffect(() => {
+    if (phase !== "matrix") return;
+    const canvas = matrixCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1).map(() => Math.random() * -100);
+
+    const draw = () => {
+      ctx.fillStyle = "rgba(2, 6, 23, 0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillStyle = drops[i] * fontSize < 30 ? "#d1fae5" : "#22c55e";
+        ctx.shadowColor = "#22c55e";
+        ctx.shadowBlur = 8;
+        ctx.fillText(text, x, y);
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    };
+
+    const interval = window.setInterval(draw, 50);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("resize", resize);
+    };
+  }, [phase]);
+
+
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden bg-slate-950 flex items-center justify-center perspective-1000">
       {/* 3D Grid Background */}
