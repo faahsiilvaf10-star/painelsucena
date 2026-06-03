@@ -62,6 +62,52 @@ export function LoginBackgroundSettings() {
       toast.error("Erro ao resetar plano de fundo.");
     }
   };
+  
+  const handleTransitionLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    setIsUploadingTransitionLogo(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `transition-logo-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("site-assets")
+        .getPublicUrl(filePath);
+
+      await updateSettings.mutateAsync({ transition_logo_url: data.publicUrl });
+      toast.success("Logo de transição atualizada!");
+    } catch (error) {
+      console.error("Error uploading transition logo:", error);
+      toast.error("Erro ao fazer upload da logo de transição.");
+    } finally {
+      setIsUploadingTransitionLogo(false);
+      if (transitionLogoInputRef.current) transitionLogoInputRef.current.value = "";
+    }
+  };
+
+  const handleResetTransitionLogo = async () => {
+    try {
+      await updateSettings.mutateAsync({ transition_logo_url: null });
+      toast.success("Logo de transição resetada para o padrão.");
+    } catch (error) {
+      console.error("Error resetting transition logo:", error);
+      toast.error("Erro ao resetar logo de transição.");
+    }
+  };
 
   const handleParticleReset = async () => {
     try {
