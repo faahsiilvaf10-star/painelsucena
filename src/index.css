@@ -30,90 +30,239 @@ html, body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 45 60% 94%;
+    --foreground: 270 20% 20%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 45 50% 96%;
+    --card-foreground: 270 20% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 45 50% 96%;
+    --popover-foreground: 270 20% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 280 45% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 160 35% 85%;
+    --secondary-foreground: 270 20% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 45 30% 88%;
+    --muted-foreground: 270 10% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 160 40% 80%;
+    --accent-foreground: 160 50% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 45 30% 82%;
+    --input: 45 30% 84%;
+    --ring: 280 45% 65%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
+
+    --success: 142 50% 45%;
+    --warning: 38 80% 55%;
+    --info: 199 60% 55%;
+
+    /* Sidebar global — Sucena Gold/Black aplicado também no tema claro */
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 74%;
+    --sidebar-primary: 45 100% 48%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 45 100% 48%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 100% 48% / 0.06;
+    --sidebar-ring: 45 100% 48%;
+  }
+
+  .dark {
+    /* Sucena Gold/Black theme — paleta exata da referência */
+    /* #0b0b0b = 0 0% 4.3%  | #f5b400 = 45 100% 48% | #f5f5f5 = 0 0% 96% */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 45 100% 48%;
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 96%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 74%;
+
+    --accent: 45 100% 48%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* rgba(245,180,0,0.18) ≈ borda dourada suave */
+    --border: 45 100% 48% / 0.18;
+    --input: 0 0% 7%;
+    --ring: 45 100% 48%;
 
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
     --info: 199 89% 60%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 74%;
+    --sidebar-primary: 45 100% 48%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 45 100% 48%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 100% 48% / 0.06;
+    --sidebar-ring: 45 100% 48%;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  /* === Dark theme — Sucena Gold (refinamento exato da referência) === */
+  .dark body {
+    background:
+      radial-gradient(circle at top center, hsl(45 100% 48% / 0.06), transparent 28%),
+      linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 3%) 100%);
+    color: hsl(var(--foreground));
   }
 
-  /* Removed custom theme overrides */
+  /* Cards com gradiente vertical e brilho dourado superior direito */
+  .dark .bg-card,
+  .dark [class*="bg-card"] {
+    background: linear-gradient(180deg, hsl(0 0% 9%) 0%, hsl(0 0% 6%) 100%) !important;
+    position: relative;
+  }
+
+  /* Tipografia dourada para títulos de cards */
+  .dark h1, .dark h2, .dark h3 {
+    color: hsl(0 0% 100%);
+  }
+
+  /* Inputs / selects / textareas com borda dourada suave */
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background: hsl(0 0% 7%) !important;
+    border-color: hsl(45 100% 48% / 0.18) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  .dark input:focus,
+  .dark select:focus,
+  .dark textarea:focus {
+    border-color: hsl(45 100% 48% / 0.5) !important;
+    box-shadow: 0 0 0 3px hsl(45 100% 48% / 0.12) !important;
+  }
+
+  /* Tabelas — header dourado claro */
+  .dark th {
+    color: hsl(45 50% 75%) !important;
+    border-bottom: 1px solid hsl(45 100% 48% / 0.18) !important;
+    font-weight: 600;
+  }
+  .dark td {
+    border-bottom: 1px solid hsl(0 0% 100% / 0.05) !important;
+  }
+
+  /* Botão primário com gradiente dourado e sombra */
+  .dark .bg-primary {
+    background: linear-gradient(135deg, hsl(45 100% 48%) 0%, hsl(45 100% 63%) 100%) !important;
+    color: hsl(0 0% 10%) !important;
+    box-shadow: 0 6px 18px hsl(45 100% 48% / 0.25);
+  }
+  .dark .bg-primary:hover {
+    box-shadow: 0 8px 24px hsl(45 100% 48% / 0.4);
+  }
+
+  /* Badges dourados */
+  .dark .border-primary {
+    border-color: hsl(45 100% 48% / 0.55) !important;
+  }
+  .dark .text-primary {
+    color: hsl(45 100% 60%) !important;
+    text-shadow: 0 0 8px hsl(45 100% 48% / 0.3);
+  }
+
+
+  /* Sidebar: item ativo com glow dourado pulsante e barra lateral
+     (aplicado em ambos temas — sidebar é sempre Sucena Gold/Black) */
+  [data-sidebar="menu-button"][data-active="true"] {
+    background: linear-gradient(90deg, hsl(45 100% 55% / 0.18) 0%, hsl(45 100% 55% / 0.06) 100%) !important;
+    color: hsl(45 100% 62%) !important;
+    box-shadow:
+      inset 3px 0 0 hsl(45 100% 55%),
+      0 0 20px hsl(45 100% 55% / 0.25),
+      0 0 40px hsl(45 100% 55% / 0.12);
+    animation: sidebar-active-glow 2.4s ease-in-out infinite;
+  }
+
+  [data-sidebar="menu-button"][data-active="true"] svg,
+  [data-sidebar="menu-button"][data-active="true"] span {
+    color: hsl(45 100% 62%) !important;
+    filter: drop-shadow(0 0 4px hsl(45 100% 55% / 0.5));
+  }
+
+  [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+    background: hsl(45 100% 55% / 0.06) !important;
+    color: hsl(45 90% 78%) !important;
+  }
+
+  /* Emergência: vermelho pulsante mantém-se em ambos temas dentro do sidebar */
+  [data-sidebar="menu-button"] .text-red-500 {
+    color: hsl(0 90% 60%) !important;
+    filter: drop-shadow(0 0 6px hsl(0 90% 50% / 0.6));
+  }
+
+  @keyframes sidebar-active-glow {
+    0%, 100% {
+      box-shadow:
+        inset 3px 0 0 hsl(45 100% 55%),
+        0 0 18px hsl(45 100% 55% / 0.22),
+        0 0 36px hsl(45 100% 55% / 0.08);
+    }
+    50% {
+      box-shadow:
+        inset 3px 0 0 hsl(45 100% 65%),
+        0 0 28px hsl(45 100% 55% / 0.4),
+        0 0 56px hsl(45 100% 55% / 0.18);
+    }
+  }
+
+  /* Card destacado (clima/featured) — borda dourada vibrante com glow constante */
+  .dark .card-gold-glow {
+    border: 1px solid hsl(45 100% 55% / 0.7) !important;
+    box-shadow:
+      0 0 20px hsl(45 100% 55% / 0.3),
+      0 0 40px hsl(45 100% 55% / 0.15),
+      inset 0 0 30px hsl(45 100% 55% / 0.04);
+    animation: card-gold-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes card-gold-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 20px hsl(45 100% 55% / 0.3),
+        0 0 40px hsl(45 100% 55% / 0.15),
+        inset 0 0 30px hsl(45 100% 55% / 0.04);
+    }
+    50% {
+      box-shadow:
+        0 0 30px hsl(45 100% 55% / 0.5),
+        0 0 60px hsl(45 100% 55% / 0.25),
+        inset 0 0 40px hsl(45 100% 55% / 0.08);
+    }
+  }
+
+
+
+
+  /* Scrollbar dourada */
+  .dark ::-webkit-scrollbar { width: 8px; height: 8px; }
+  .dark ::-webkit-scrollbar-track { background: hsl(0 0% 8%); }
+  .dark ::-webkit-scrollbar-thumb { background: hsl(45 80% 28%); border-radius: 4px; }
+  .dark ::-webkit-scrollbar-thumb:hover { background: hsl(45 100% 50%); }
 }
 
 @layer base {
@@ -127,6 +276,7 @@ html, body {
   }
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
     font-weight: 600;
   }
 
