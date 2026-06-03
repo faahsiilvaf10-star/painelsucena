@@ -241,9 +241,10 @@ const Layout = ({ children }: LayoutProps) => {
           {/* <SessionTimeIndicator /> removido */}
           <CampaignRibbon />
           <ThemeToggle />
-          <NotificationBell />
+          {!isAuraTheme && <NotificationBell />}
         </div>
       </header>
+
       <main className={cn(
         "flex-1 overflow-y-auto",
         isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14',
