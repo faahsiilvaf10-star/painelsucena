@@ -22,6 +22,7 @@ export interface SiteSettings {
   instacena_gif_right_opacity: number;
   screensaver_enabled: boolean;
   screensaver_timeout: number;
+  login_background_url: string | null;
   updated_at: string;
   updated_by: string | null;
 }
