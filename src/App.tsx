@@ -88,28 +88,29 @@ const PageLoader = () => {
   const displayLogo = settings.page_loading_img_url || loadingLogo;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="relative mb-4">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="relative mb-6">
         <img
           src={displayLogo}
           alt="Carregando..."
-          className="h-20 w-20 object-contain animate-[fadePulse_1.8s_ease-in-out_infinite] drop-shadow-md"
+          className="h-32 w-32 md:h-40 md:w-40 object-contain animate-[fadePulse_1.8s_ease-in-out_infinite] drop-shadow-xl"
         />
-        <div className="absolute -inset-3 border-2 border-primary/20 rounded-full animate-[ping_2.5s_linear_infinite]" />
+        <div className="absolute -inset-6 border-4 border-primary/20 rounded-full animate-[ping_3s_linear_infinite]" />
+        <div className="absolute -inset-10 border-2 border-primary/10 rounded-full animate-[ping_4s_linear_infinite] delay-700" />
       </div>
-      <div className="flex gap-1.5">
+      <div className="flex gap-2">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce"
+            className="w-2 h-2 rounded-full bg-primary animate-bounce shadow-[0_0_8px_rgba(var(--primary),0.5)]"
             style={{ animationDelay: `${i * 150}ms` }}
           />
         ))}
       </div>
       <style>{`
         @keyframes fadePulse {
-          0%, 100% { opacity: 0.35; transform: scale(0.95); }
-          50% { opacity: 1; transform: scale(1.05); }
+          0%, 100% { opacity: 0.4; transform: scale(0.92); filter: brightness(0.8); }
+          50% { opacity: 1; transform: scale(1.08); filter: brightness(1.2); }
         }
       `}</style>
     </div>
