@@ -114,136 +114,132 @@ const Layout = ({ children }: LayoutProps) => {
       "flex flex-col h-full overflow-hidden",
       isAuraTheme ? "bg-[#1a1814] text-white" : ""
     )}>
-      {/* Header with notification bell and theme toggle */}
-      <header className={cn(
-        "flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b px-3 md:px-4 relative",
-        isAuraTheme ? "bg-transparent border-white/5" : "bg-background"
-      )}>
-
-        
-        {/* Left side */}
-        <div className="flex items-center gap-1.5 md:gap-2">
-          {showBackButton && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate(-1)}
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                  aria-label="Voltar"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p className="text-xs">Voltar</p></TooltipContent>
-            </Tooltip>
-          )}
-          {isDockTheme ? (
-            <>
-              {/* Profile photo */}
-              <button onClick={() => navigate("/configuracoes")} className="flex items-center">
-                <NeonAvatar
-                  src={profile?.avatar_url}
-                  name={profile?.full_name || "U"}
-                  frameColor={profile?.frame_color}
-                  neonColor={profile?.neon_color}
-                  frameAnimation={profile?.frame_animation}
-                  size="xs"
-                />
-              </button>
-              {/* Settings */}
+      {/* Header removido para o layout Aura */}
+      {!isAuraTheme && (
+        <header className={cn(
+          "flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b px-3 md:px-4 relative bg-background"
+        )}>
+          {/* Left side */}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            {showBackButton && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate("/configuracoes")}
+                    onClick={() => navigate(-1)}
                     className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    aria-label="Voltar"
                   >
-                    <Settings className="h-4 w-4" />
+                    <ArrowLeft className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p className="text-xs">Configurações</p></TooltipContent>
+                <TooltipContent side="bottom"><p className="text-xs">Voltar</p></TooltipContent>
               </Tooltip>
-              {/* Admin */}
-              {isAdmin && (
+            )}
+            {isDockTheme ? (
+              <>
+                {/* Profile photo */}
+                <button onClick={() => navigate("/configuracoes")} className="flex items-center">
+                  <NeonAvatar
+                    src={profile?.avatar_url}
+                    name={profile?.full_name || "U"}
+                    frameColor={profile?.frame_color}
+                    neonColor={profile?.neon_color}
+                    frameAnimation={profile?.frame_animation}
+                    size="xs"
+                  />
+                </button>
+                {/* Settings */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => navigate("/admin")}
-                      className="h-7 w-7 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
+                      onClick={() => navigate("/configuracoes")}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
                     >
-                      <ShieldCheck className="h-4 w-4" />
+                      <Settings className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom"><p className="text-xs">Administração</p></TooltipContent>
+                  <TooltipContent side="bottom"><p className="text-xs">Configurações</p></TooltipContent>
                 </Tooltip>
-              )}
-              {/* News */}
-              <NewsButton />
-              {/* Logout */}
+                {/* Admin */}
+                {isAdmin && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate("/admin")}
+                        className="h-7 w-7 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom"><p className="text-xs">Administração</p></TooltipContent>
+                  </Tooltip>
+                )}
+                {/* News */}
+                <NewsButton />
+                {/* Logout */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleSignOut}
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom"><p className="text-xs">Sair</p></TooltipContent>
+                </Tooltip>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 md:gap-4 md:hidden">
+                  <span className="font-semibold text-sm">Painel Sucena</span>
+                </div>
+                <div className="hidden md:block w-24" />
+              </>
+            )}
+          </div>
+          
+          {/* Frase motivacional removida */}
+          
+          <div className="flex items-center gap-0.5 md:gap-1">
+            {canEdit && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleSignOut}
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  <button
+                    onClick={toggleEditMode}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded-full transition-colors ${
+                      isEditMode 
+                        ? "text-primary bg-primary/20 hover:bg-primary/30" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                    aria-label={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
                   >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
+                    {isEditMode ? <PencilOff className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
+                    <span className="text-[10px] font-medium hidden sm:inline">
+                      {isEditMode ? "Editando" : "Editar"}
+                    </span>
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p className="text-xs">Sair</p></TooltipContent>
+                <TooltipContent side="bottom" className="bg-card border">
+                  <p className="text-xs">{isEditMode ? "Desativar modo edição" : "Ativar modo edição em tempo real"}</p>
+                </TooltipContent>
               </Tooltip>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 md:gap-4 md:hidden">
-                <span className="font-semibold text-sm">Painel Sucena</span>
-              </div>
-              <div className="hidden md:block w-24" />
-            </>
-          )}
-        </div>
-        
-        {/* Frase motivacional removida */}
+            )}
+            
+            <CampaignRibbon />
+            <NotificationBell />
+          </div>
+        </header>
+      )}
 
-        
-        <div className="flex items-center gap-0.5 md:gap-1">
-          {canEdit && !isAuraTheme && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={toggleEditMode}
-                  className={`flex items-center gap-1 px-1.5 py-1 rounded-full transition-colors ${
-                    isEditMode 
-                      ? "text-primary bg-primary/20 hover:bg-primary/30" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
-                  aria-label={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
-                >
-                  {isEditMode ? <PencilOff className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
-                  <span className="text-[10px] font-medium hidden sm:inline">
-                    {isEditMode ? "Editando" : "Editar"}
-                  </span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-card border">
-                <p className="text-xs">{isEditMode ? "Desativar modo edição" : "Ativar modo edição em tempo real"}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {/* <Tooltip> removido e movido para o rodapé */}
-
-          {/* <SessionTimeIndicator /> removido */}
-          <CampaignRibbon />
-          {/* <ThemeToggle /> removido */}
-          {!isAuraTheme && <NotificationBell />}
-        </div>
-      </header>
 
       <main className={cn(
         "flex-1 overflow-y-auto",
