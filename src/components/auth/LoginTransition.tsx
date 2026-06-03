@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User, Home, Hammer, Construction } from "lucide-react";
+import { User, Home, Hammer, Construction, Shield } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
 
@@ -105,30 +105,48 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Phase: Building Animation */}
+      {/* Phase: Matrix / Security Animation */}
       {phase === "building" && (
-        <div className="relative w-64 h-64 flex items-center justify-center">
-          {/* Construction Elements */}
-          <div className="absolute animate-bounce-slow">
-             <Home className="w-32 h-32 text-blue-400 opacity-20" />
-          </div>
-          
-          {/* Wireframe Box Building */}
-          <div className="relative w-40 h-40 animate-spin-slow">
-            <div className="absolute inset-0 border-2 border-blue-500/40 rounded-sm translate-z-10 animate-pulse" />
-            <div className="absolute inset-0 border-2 border-blue-500/40 rounded-sm -translate-z-10" />
-            <div className="absolute inset-0 border-2 border-blue-500/20 rotate-45" />
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+          {/* Matrix Rain Effect */}
+          <div className="absolute inset-0 grid grid-cols-12 md:grid-cols-24 gap-2 opacity-40 pointer-events-none">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-2 animate-matrix-fall" style={{ animationDelay: `${Math.random() * 5}s`, animationDuration: `${3 + Math.random() * 4}s` }}>
+                {Array.from({ length: 20 }).map((_, j) => (
+                  <span key={j} className="text-[10px] font-mono text-blue-500/60 leading-none">
+                    {Math.random() > 0.5 ? "1" : "0"}
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
 
-          {/* Floating Icons */}
-          <Hammer className="absolute top-0 left-0 w-8 h-8 text-amber-400 animate-hammer-swing" />
-          <Construction className="absolute bottom-4 right-0 w-10 h-10 text-orange-500 animate-pulse" />
-          
-          {/* Text */}
-          <div className="absolute -bottom-12 w-full text-center">
-            <p className="text-blue-400 text-xs font-mono tracking-widest uppercase animate-pulse">
-              Construindo ambiente seguro...
-            </p>
+          <div className="relative z-10 flex flex-col items-center">
+            {/* Security Shield Hexagon */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full animate-pulse" />
+              <div className="relative p-6 border-2 border-blue-500/40 rounded-xl bg-slate-900/80 backdrop-blur-sm shadow-[0_0_30px_rgba(59,130,246,0.2)] animate-float">
+                <Shield className="w-16 h-16 text-blue-400" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-ping" />
+              </div>
+            </div>
+            
+            {/* Scanning Line */}
+            <div className="w-48 h-1 bg-blue-500/20 relative overflow-hidden rounded-full mb-4">
+              <div className="absolute inset-0 bg-blue-500 shadow-[0_0_10px_#3b82f6] animate-scan" />
+            </div>
+
+            {/* Auth Text */}
+            <div className="text-center space-y-1">
+              <p className="text-blue-400 text-[10px] font-mono tracking-[0.3em] uppercase animate-pulse">
+                Iniciando Protocolo de Matriz
+              </p>
+              <div className="flex gap-1 justify-center">
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -169,30 +187,33 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         .translate-z-10 { transform: translateZ(20px); }
         .-translate-z-10 { transform: translateZ(-20px); }
         
-        @keyframes hammer-swing {
-          0%, 100% { transform: rotate(-15deg) translateY(0); }
-          50% { transform: rotate(25deg) translateY(-5px); }
+        @keyframes matrix-fall {
+          0% { transform: translateY(-100%); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(100%); opacity: 0; }
         }
-        .animate-hammer-swing {
-          animation: hammer-swing 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes spin-slow {
-          from { transform: rotateY(0deg) rotateX(15deg); }
-          to { transform: rotateY(360deg) rotateX(15deg); }
-        }
-        .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
-          transform-style: preserve-3d;
+        .animate-matrix-fall {
+          animation: matrix-fall linear infinite;
         }
 
-        @keyframes bounce-slow {
+        @keyframes scan {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-scan {
+          animation: scan 2s linear infinite;
+        }
+
+        @keyframes float {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-15px); }
+          50% { transform: translateY(-10px); }
         }
-        .animate-bounce-slow {
-          animation: bounce-slow 3s ease-in-out infinite;
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
         }
+        
+        @keyframes hammer-swing {
       `}</style>
     </div>
   );
