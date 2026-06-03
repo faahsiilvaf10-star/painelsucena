@@ -223,8 +223,9 @@ const Layout = ({ children }: LayoutProps) => {
       <main className={cn(
         "flex-1 overflow-y-auto",
         isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14',
-        isAuraTheme ? "mt-0 pt-32 px-6" : ""
+        isAuraTheme ? "mt-0 pt-40 px-6" : ""
       )}>
+
 
 
 
