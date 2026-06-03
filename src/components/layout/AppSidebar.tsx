@@ -233,9 +233,8 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   }, [updateSettings]);
 
   const handleMobileClose = React.useCallback(() => {
-    // Sempre minimiza o sidebar ao navegar (desktop e mobile)
-    setOpen(false);
-  }, [setOpen]);
+    // Não fecha mais automaticamente ao navegar
+  }, []);
 
   // Force collapsed state when locked
   React.useEffect(() => {
