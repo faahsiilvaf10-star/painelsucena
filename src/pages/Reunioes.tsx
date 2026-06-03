@@ -385,10 +385,9 @@ export default function Reunioes() {
         activeMeeting.created_by === user.id
     );
     return (
-      <Layout>
-        <div className="fixed inset-0 z-50 flex flex-col bg-background">
-          <div className="flex items-center justify-between border-b px-4 py-2">
-            <div className="flex items-center gap-2 text-sm">
+      <div className="fixed inset-0 z-[100] flex h-dvh w-dvw flex-col overflow-hidden bg-background">
+          <div className="flex shrink-0 items-center justify-between gap-3 overflow-x-auto border-b bg-background/95 px-4 py-2 backdrop-blur-sm">
+            <div className="flex min-w-max items-center gap-2 text-sm">
               <Video className="h-4 w-4 text-primary" />
               <span className="font-semibold">{activeMeeting.title}</span>
               {isHost && (
@@ -414,7 +413,7 @@ export default function Reunioes() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-max items-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -473,17 +472,17 @@ export default function Reunioes() {
                   </Button>
                 </>
               )}
-              <Button size="sm" variant="outline" onClick={() => setConfirmLeave(true)}>
+              <Button size="sm" variant="outline" onClick={() => setConfirmLeave(true)} className="shrink-0">
                 <X className="mr-1.5 h-4 w-4" /> Sair
               </Button>
             </div>
           </div>
           <div
-            className={`flex-1 min-h-0 grid grid-cols-1 gap-2 bg-black p-1 ${
+            className={`grid min-h-0 flex-1 grid-cols-1 gap-2 bg-foreground p-1 ${
               sidePanelOpen ? "lg:grid-cols-[1fr_360px]" : "lg:grid-cols-1"
             }`}
           >
-            <div className="flex-1 min-h-0 bg-black relative">
+            <div className="relative h-full min-h-0 overflow-hidden bg-foreground">
               <JitsiRoom
                 ref={jitsiRef}
                 {...({
@@ -594,7 +593,7 @@ export default function Reunioes() {
           roomName={activeMeeting.room_name}
           snapshots={meetingSnapshots.map((s) => s.url)}
         />
-      </Layout>
+      </div>
     );
   }
 
