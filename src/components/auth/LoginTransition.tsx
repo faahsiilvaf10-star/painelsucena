@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User, Home, Hammer, Construction, Shield } from "lucide-react";
+import { User } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
 
@@ -11,7 +11,8 @@ interface LoginTransitionProps {
 }
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
-  const [phase, setPhase] = useState<"blank" | "logo" | "building" | "welcome" | "fade" | "done">("blank");
+  const [phase, setPhase] = useState<"blank" | "logo" | "matrix" | "welcome" | "fade" | "done">("blank");
+  const matrixCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const { settings, isLoading: isSettingsLoading } = useSiteSettings();
   const logoUrl = settings.transition_logo_url || settings.logo_url || logoPrincipal;
   const isLogoReady = !isSettingsLoading && !!logoUrl;
@@ -68,7 +69,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     const t1 = setTimeout(() => {
       if (isLogoReady) setPhase("logo");
     }, 300);
-    const t2 = setTimeout(() => setPhase("building"), 3500); // Logo fica por 3.2 segundos (antes era 1.2s)
+    const t2 = setTimeout(() => setPhase("matrix"), 3500);
     const t3 = setTimeout(() => setPhase("welcome"), 6500);
     const t4 = setTimeout(() => setPhase("fade"), 9500);
     const t5 = setTimeout(() => {
@@ -85,6 +86,51 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       clearTimeout(t5);
     };
   }, [onComplete]);
+
+  // Matrix rain effect
+  useEffect(() => {
+    if (phase !== "matrix") return;
+    const canvas = matrixCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1).map(() => Math.random() * -100);
+
+    const draw = () => {
+      ctx.fillStyle = "rgba(2, 6, 23, 0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillStyle = drops[i] * fontSize < 30 ? "#d1fae5" : "#22c55e";
+        ctx.shadowColor = "#22c55e";
+        ctx.shadowBlur = 8;
+        ctx.fillText(text, x, y);
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    };
+
+    const interval = window.setInterval(draw, 50);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("resize", resize);
+    };
+  }, [phase]);
+
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden bg-slate-950 flex items-center justify-center perspective-1000">
@@ -105,48 +151,14 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Phase: Matrix / Security Animation */}
-      {phase === "building" && (
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-          {/* Matrix Rain Effect */}
-          <div className="absolute inset-0 grid grid-cols-12 md:grid-cols-24 gap-2 opacity-40 pointer-events-none">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2 animate-matrix-fall" style={{ animationDelay: `${Math.random() * 5}s`, animationDuration: `${3 + Math.random() * 4}s` }}>
-                {Array.from({ length: 20 }).map((_, j) => (
-                  <span key={j} className="text-[10px] font-mono text-blue-500/60 leading-none">
-                    {Math.random() > 0.5 ? "1" : "0"}
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-
-          <div className="relative z-10 flex flex-col items-center">
-            {/* Security Shield Hexagon */}
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full animate-pulse" />
-              <div className="relative p-6 border-2 border-blue-500/40 rounded-xl bg-slate-900/80 backdrop-blur-sm shadow-[0_0_30px_rgba(59,130,246,0.2)] animate-float">
-                <Shield className="w-16 h-16 text-blue-400" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-ping" />
-              </div>
-            </div>
-            
-            {/* Scanning Line */}
-            <div className="w-48 h-1 bg-blue-500/20 relative overflow-hidden rounded-full mb-4">
-              <div className="absolute inset-0 bg-blue-500 shadow-[0_0_10px_#3b82f6] animate-scan" />
-            </div>
-
-            {/* Auth Text */}
-            <div className="text-center space-y-1">
-              <p className="text-blue-400 text-[10px] font-mono tracking-[0.3em] uppercase animate-pulse">
-                Iniciando Protocolo de Matriz
-              </p>
-              <div className="flex gap-1 justify-center">
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" />
-              </div>
-            </div>
+      {/* Phase: Matrix Animation */}
+      {phase === "matrix" && (
+        <div className="relative w-full h-full flex items-center justify-center">
+          <canvas ref={matrixCanvasRef} className="absolute inset-0 w-full h-full" />
+          <div className="relative z-10 text-center">
+            <p className="text-green-400 text-sm md:text-base font-mono tracking-[0.3em] uppercase animate-pulse drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
+              Construindo ambiente seguro...
+            </p>
           </div>
         </div>
       )}
@@ -187,33 +199,30 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         .translate-z-10 { transform: translateZ(20px); }
         .-translate-z-10 { transform: translateZ(-20px); }
         
-        @keyframes matrix-fall {
-          0% { transform: translateY(-100%); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(100%); opacity: 0; }
+        @keyframes hammer-swing {
+          0%, 100% { transform: rotate(-15deg) translateY(0); }
+          50% { transform: rotate(25deg) translateY(-5px); }
         }
-        .animate-matrix-fall {
-          animation: matrix-fall linear infinite;
-        }
-
-        @keyframes scan {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .animate-scan {
-          animation: scan 2s linear infinite;
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
+        .animate-hammer-swing {
+          animation: hammer-swing 1.5s ease-in-out infinite;
         }
         
-        @keyframes hammer-swing {
+        @keyframes spin-slow {
+          from { transform: rotateY(0deg) rotateX(15deg); }
+          to { transform: rotateY(360deg) rotateX(15deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+          transform-style: preserve-3d;
+        }
+
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
+        }
       `}</style>
     </div>
   );
