@@ -108,16 +108,8 @@ export const TopNavigation = () => {
       {/* Botão de configurações removido */}
 
         
-        {isAdmin && (
-          <button 
-            onClick={() => navigate("/admin")}
-            className="p-2 rounded-full text-amber-500/70 hover:text-amber-500 hover:bg-white/5 transition-colors shrink-0"
-            title="Administração"
-          >
-            <ShieldCheck className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+      {/* Botão de administração removido */}
     </nav>
   );
 };
+
