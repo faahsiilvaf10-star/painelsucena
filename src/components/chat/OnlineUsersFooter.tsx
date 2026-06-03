@@ -80,7 +80,13 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
 
       {!isMinimized && (
         <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-hidden relative min-h-[36px] md:min-h-[40px]">
+          {isAuraTheme && (
+            <div className="flex shrink-0 items-center relative z-[60]">
+              <NotificationBell />
+            </div>
+          )}
           {/* Link ForMusic removido */}
+
 
           <div className="flex-1 min-w-0 overflow-hidden">
             <NewsTicker />
