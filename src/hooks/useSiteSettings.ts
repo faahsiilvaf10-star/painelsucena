@@ -107,6 +107,7 @@ export function useSiteSettings() {
         instacena_gif_right_opacity: d.instacena_gif_right_opacity ?? 1,
         screensaver_enabled: d.screensaver_enabled ?? true,
         screensaver_timeout: d.screensaver_timeout ?? 5,
+        login_background_url: d.login_background_url || null,
       };
     },
     staleTime: 1000 * 60 * 5,
