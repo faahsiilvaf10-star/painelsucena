@@ -163,8 +163,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...({
             iframeAttributes: {
-              allow:
-                "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; clipboard-read; screen-wake-lock; speaker-selection; web-share",
+              allow: "camera; microphone; fullscreen; display-capture; autoplay",
             },
           } as any),
           configOverwrite: {
@@ -226,8 +225,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         try {
           const iframe: HTMLIFrameElement | null = api.getIFrame?.() ?? containerRef.current?.querySelector("iframe");
           if (iframe) {
-            const allowValue =
-              "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; clipboard-read; screen-wake-lock; speaker-selection; web-share";
+            const allowValue = "camera; microphone; fullscreen; display-capture; autoplay";
             iframe.setAttribute("allow", allowValue);
             iframe.setAttribute("allowfullscreen", "true");
           }
