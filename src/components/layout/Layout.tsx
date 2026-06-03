@@ -209,10 +209,8 @@ const Layout = ({ children }: LayoutProps) => {
           )}
         </div>
         
-        {/* Motivational phrase - centered */}
-        <p className="hidden lg:block flex-1 text-center text-sm text-muted-foreground italic truncate px-4">
-          "{dailyPhrase}"
-        </p>
+        {/* Frase motivacional removida */}
+
         
         <div className="flex items-center gap-0.5 md:gap-1">
           {canEdit && (
