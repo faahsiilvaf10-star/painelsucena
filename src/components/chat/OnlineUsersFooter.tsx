@@ -115,6 +115,20 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
         <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 relative min-h-[36px] md:min-h-[40px]">
           {isAuraTheme && (
             <div className="flex shrink-0 items-center gap-1 relative z-[60]">
+              <button 
+                onClick={async () => {
+                  const userName = profile?.full_name || "Usuário";
+                  const userAvatar = profile?.avatar_url || undefined;
+                  sessionStorage.setItem("logoutTransitionInProgress", "true");
+                  sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({ userName, userAvatar }));
+                  window.dispatchEvent(new Event("logout-transition"));
+                  try { await signOut(); } catch {}
+                }}
+                className="p-2 rounded-full text-red-500/50 hover:text-red-500 hover:bg-white/5 transition-all group/logout"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              </button>
 
               <NotificationBell />
               
@@ -136,23 +150,7 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
                 </button>
               )}
 
-              <button 
-                onClick={async () => {
-                  const userName = profile?.full_name || "Usuário";
-                  const userAvatar = profile?.avatar_url || undefined;
-                  sessionStorage.setItem("logoutTransitionInProgress", "true");
-                  sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({ userName, userAvatar }));
-                  window.dispatchEvent(new Event("logout-transition"));
-                  try { await signOut(); } catch {}
-                }}
-                className="p-2 rounded-full text-red-500/50 hover:text-red-500 hover:bg-white/5 transition-all group/logout"
-                title="Sair"
-              >
-                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              </button>
-
               {canEdit && (
-
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -171,6 +169,7 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
               )}
             </div>
           )}
+
 
 
           {/* Link ForMusic removido */}
