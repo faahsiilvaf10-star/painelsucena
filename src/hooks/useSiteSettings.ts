@@ -6,6 +6,7 @@ export interface SiteSettings {
   id: string;
   logo_url: string | null;
   sidebar_color: string;
+  transition_logo_url: string | null;
   nav_order: string[];
   show_signup_button: boolean;
   ui_theme: string;
