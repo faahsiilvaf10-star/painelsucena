@@ -9,6 +9,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 
 interface PersistentSidebarProps {
   children: ReactNode;
@@ -88,7 +90,11 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
-      <div className={`h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden ${useAura ? "bg-[#1a1814]" : "bg-background"}`}>
+      <div className={cn(
+        "h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden",
+        useAura ? "bg-[#1a1814]" : "bg-background"
+      )}>
+
         {user && !isDriver && !useDock && !useAura && !isAuthPage && !isEnvSelectionPage && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
