@@ -57,7 +57,7 @@ import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableText } from "@/components/cms/EditableText";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
-import { useActiveMeetingPresence } from "@/hooks/useActiveMeetingPresence";
+// useActiveMeetingPresence removed
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NavItem {
