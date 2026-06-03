@@ -114,6 +114,8 @@ export function LoginBackgroundSettings() {
       await updateSettings.mutateAsync({
         login_particles_enabled: true,
         login_particles_color: "white",
+        login_particles_color2: null,
+        login_particles_color3: null,
         login_particles_count: 100,
         login_particles_speed: 1.0,
       });
