@@ -13,7 +13,7 @@ interface LogoutTransitionProps {
 export function LogoutTransition({ onComplete, userName, userAvatar, reason = "manual" }: LogoutTransitionProps) {
   const [phase, setPhase] = useState<"blank" | "logo" | "goodbye" | "fade" | "done">("blank");
   const { settings } = useSiteSettings();
-  const logoUrl = settings.logo_url || logoPrincipal;
+  const logoUrl = settings.transition_logo_url || settings.logo_url || logoPrincipal;
   const isTimeout = reason === "timeout";
   const displayName = userName || "Usuário";
   const audioEndedRef = useRef(false);

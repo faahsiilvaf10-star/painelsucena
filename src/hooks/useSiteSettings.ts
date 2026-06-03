@@ -6,6 +6,7 @@ export interface SiteSettings {
   id: string;
   logo_url: string | null;
   sidebar_color: string;
+  transition_logo_url: string | null;
   nav_order: string[];
   show_signup_button: boolean;
   ui_theme: string;
@@ -34,6 +35,7 @@ export interface SiteSettings {
 const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> & { id: string; updated_at: string; updated_by: null } = {
   id: "",
   logo_url: null,
+  transition_logo_url: null,
   sidebar_color: "#1e2235",
   nav_order: [
     "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
@@ -120,6 +122,7 @@ export function useSiteSettings() {
         login_particles_color: d.login_particles_color || "white",
         login_particles_count: d.login_particles_count ?? 100,
         login_particles_speed: d.login_particles_speed ?? 1.0,
+        transition_logo_url: d.transition_logo_url || null,
       };
     },
     staleTime: 1000 * 60 * 5,

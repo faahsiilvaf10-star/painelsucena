@@ -4130,6 +4130,7 @@ export type Database = {
           sidebar_color: string | null
           sidebar_font: string | null
           sidebar_font_color: string | null
+          transition_logo_url: string | null
           ui_theme: string
           updated_at: string
           updated_by: string | null
@@ -4164,6 +4165,7 @@ export type Database = {
           sidebar_color?: string | null
           sidebar_font?: string | null
           sidebar_font_color?: string | null
+          transition_logo_url?: string | null
           ui_theme?: string
           updated_at?: string
           updated_by?: string | null
@@ -4198,6 +4200,7 @@ export type Database = {
           sidebar_color?: string | null
           sidebar_font?: string | null
           sidebar_font_color?: string | null
+          transition_logo_url?: string | null
           ui_theme?: string
           updated_at?: string
           updated_by?: string | null
