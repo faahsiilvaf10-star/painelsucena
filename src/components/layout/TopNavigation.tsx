@@ -105,13 +105,8 @@ export const TopNavigation = () => {
         
         <div className="w-px h-6 bg-white/10 mx-2 shrink-0" />
         
-        <button 
-          onClick={() => navigate("/configuracoes")}
-          className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-colors shrink-0"
-          title="Configurações"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
+      {/* Botão de configurações removido */}
+
         
         {isAdmin && (
           <button 
