@@ -1,5 +1,7 @@
 import * as React from "react";
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2, TriangleAlert, Target, Receipt, FlameKindling, Pencil, PencilOff, Shield, Warehouse, Building2, Video } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2, TriangleAlert, Target, Receipt, FlameKindling, Pencil, PencilOff, Shield, Warehouse, Building2 } from "lucide-react";
+
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 
@@ -55,7 +57,7 @@ import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableText } from "@/components/cms/EditableText";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
-import { useActiveMeetingPresence } from "@/hooks/useActiveMeetingPresence";
+// useActiveMeetingPresence removed
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NavItem {
@@ -111,11 +113,8 @@ function SortableNavItem({
   onNavigate?: () => void;
   editMode?: boolean;
 }) {
-  const { hasActive: meetingActive, activeCount } = useActiveMeetingPresence();
-  const showMeetingPulse = item.id === "reunioes" && meetingActive;
-  const meetingTooltip = `Reunião em andamento • ${activeCount} ${
-    activeCount === 1 ? "pessoa" : "pessoas"
-  } na sala`;
+  const showMeetingPulse = false;
+
   const {
     attributes,
     listeners,
@@ -166,34 +165,8 @@ function SortableNavItem({
               canEdit={!!editMode}
             />
           </span>
-          {showMeetingPulse && (
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className="ml-auto flex items-center gap-1.5 flex-shrink-0"
-                    aria-label={meetingTooltip}
-                  >
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_10px_2px_rgba(34,197,94,0.9)]" />
-                    </span>
-                    {!isCollapsed && (
-                      <span className="text-[11px] font-semibold leading-none text-green-500">
-                        {activeCount}
-                      </span>
-                    )}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="text-xs">
-                  <div className="font-semibold">Reunião em andamento</div>
-                  <div className="text-muted-foreground">
-                    {activeCount} {activeCount === 1 ? "pessoa" : "pessoas"} na sala agora
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          {/* Meeting pulse removed */}
+
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

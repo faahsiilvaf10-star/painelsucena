@@ -111,9 +111,10 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <SidebarInset className={cn(
-      "flex flex-col h-full overflow-hidden !border-none !shadow-none !m-0 !rounded-none",
+      "flex flex-col h-full overflow-hidden !border-none !shadow-none !m-0 !rounded-none after:hidden before:hidden",
       isAuraTheme ? "bg-[#1a1814] text-white" : ""
     )}>
+
 
 
       {/* Header removido para o layout Aura */}
