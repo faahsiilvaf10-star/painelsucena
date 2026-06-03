@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const GlobalBackgroundSettings = () => {
   const { settings, updateSettings, isLoading } = useSiteSettings();
   const [isUploading, setIsUploading] = useState(false);
+  const [localOpacity, setLocalOpacity] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
