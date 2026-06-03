@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
 import { ChevronDown, Play, RefreshCw, Pencil, PencilOff } from "lucide-react";
 import { cn } from "@/lib/utils";
