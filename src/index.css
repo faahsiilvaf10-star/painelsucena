@@ -1689,13 +1689,13 @@ html, body {
 
 /* Global Background Transparency */
 [data-has-global-bg="true"] .bg-background {
-  background-color: hsl(var(--background) / 0.85) !important;
+  background-color: hsl(var(--background) / var(--bg-opacity, 0.85)) !important;
 }
 
 [data-has-global-bg="true"] .bg-card {
-  background-color: hsl(var(--card) / 0.9) !important;
+  background-color: hsl(var(--card) / var(--bg-opacity, 0.9)) !important;
 }
 
 .dark[data-has-global-bg="true"] .bg-background {
-  background-color: hsl(var(--background) / 0.75) !important;
+  background-color: hsl(var(--background) / var(--bg-opacity, 0.75)) !important;
 }
