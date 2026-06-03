@@ -44,6 +44,7 @@ interface Particle {
   duration: number;
   delay: number;
   opacity: number;
+  color: string;
   type: "small" | "medium" | "large";
   speed: "slow" | "normal" | "fast";
 }
@@ -54,7 +55,12 @@ export function AuthBackground() {
   const particleCount = settings.login_particles_count ?? 100;
   const particleEnabled = settings.login_particles_enabled ?? true;
   const particleSpeed = settings.login_particles_speed ?? 1.0;
-  const particleColor = settings.login_particles_color || "white";
+  const particleColors = useMemo(() => {
+    const colors = [settings.login_particles_color || "white"];
+    if (settings.login_particles_color2) colors.push(settings.login_particles_color2);
+    if (settings.login_particles_color3) colors.push(settings.login_particles_color3);
+    return colors;
+  }, [settings.login_particles_color, settings.login_particles_color2, settings.login_particles_color3]);
 
   // Generate random particles with varied sizes
   const particles = useMemo<Particle[]>(() => {
@@ -100,11 +106,12 @@ export function AuthBackground() {
         duration: baseDuration + Math.random() * durationVariation,
         delay: Math.random() * 8,
         opacity,
+        color: particleColors[i % particleColors.length],
         type,
         speed,
       };
     });
-  }, [particleCount, particleEnabled, particleSpeed]);
+  }, [particleCount, particleEnabled, particleSpeed, particleColors]);
 
   // Get daily verse based on day of year
   const dailyVerse = useMemo(() => {
@@ -143,11 +150,11 @@ export function AuthBackground() {
                 width: `${particle.size}px`,
                 height: `${particle.size}px`,
                 opacity: particle.opacity,
-                backgroundColor: particleColor,
+                backgroundColor: particle.color,
                 animationDuration: `${particle.duration}s`,
                 animationDelay: `${particle.delay}s`,
                 boxShadow: particle.type === "large"
-                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor}`
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particle.color}`
                   : "none",
               }}
             />
@@ -199,11 +206,11 @@ export function AuthBackground() {
                 width: `${particle.size}px`,
                 height: `${particle.size}px`,
                 opacity: particle.opacity,
-                backgroundColor: particleColor,
+                backgroundColor: particle.color,
                 animationDuration: `${particle.duration}s`,
                 animationDelay: `${particle.delay}s`,
                 boxShadow: particle.type === "large"
-                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor}`
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particle.color}`
                   : "none",
               }}
             />

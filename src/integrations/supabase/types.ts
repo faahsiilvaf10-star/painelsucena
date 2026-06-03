@@ -4115,6 +4115,8 @@ export type Database = {
           instacena_gif_url: string | null
           login_background_url: string | null
           login_particles_color: string | null
+          login_particles_color2: string | null
+          login_particles_color3: string | null
           login_particles_count: number | null
           login_particles_enabled: boolean | null
           login_particles_speed: number | null
@@ -4150,6 +4152,8 @@ export type Database = {
           instacena_gif_url?: string | null
           login_background_url?: string | null
           login_particles_color?: string | null
+          login_particles_color2?: string | null
+          login_particles_color3?: string | null
           login_particles_count?: number | null
           login_particles_enabled?: boolean | null
           login_particles_speed?: number | null
@@ -4185,6 +4189,8 @@ export type Database = {
           instacena_gif_url?: string | null
           login_background_url?: string | null
           login_particles_color?: string | null
+          login_particles_color2?: string | null
+          login_particles_color3?: string | null
           login_particles_count?: number | null
           login_particles_enabled?: boolean | null
           login_particles_speed?: number | null

@@ -114,6 +114,8 @@ export function LoginBackgroundSettings() {
       await updateSettings.mutateAsync({
         login_particles_enabled: true,
         login_particles_color: "white",
+        login_particles_color2: null,
+        login_particles_color3: null,
         login_particles_count: 100,
         login_particles_speed: 1.0,
       });
@@ -227,22 +229,56 @@ export function LoginBackgroundSettings() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Palette className="w-4 h-4" />
-                Cor das Partículas
+                Cores das Partículas
               </Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={settings.login_particles_color === "white" ? "#ffffff" : settings.login_particles_color}
-                  onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
-                  className="w-12 h-9 p-1"
-                />
-                <Input
-                  type="text"
-                  value={settings.login_particles_color}
-                  onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
-                  placeholder="Ex: white ou #ffffff"
-                  className="flex-1"
-                />
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={settings.login_particles_color === "white" ? "#ffffff" : settings.login_particles_color}
+                    onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
+                    className="w-12 h-9 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={settings.login_particles_color}
+                    onChange={(e) => updateSettings.mutate({ login_particles_color: e.target.value })}
+                    placeholder="Cor 1 (Ex: white ou #ffffff)"
+                    className="flex-1"
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={settings.login_particles_color2 || "#ffffff"}
+                    onChange={(e) => updateSettings.mutate({ login_particles_color2: e.target.value })}
+                    className="w-12 h-9 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={settings.login_particles_color2 || ""}
+                    onChange={(e) => updateSettings.mutate({ login_particles_color2: e.target.value || null })}
+                    placeholder="Cor 2 (Opcional)"
+                    className="flex-1"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={settings.login_particles_color3 || "#ffffff"}
+                    onChange={(e) => updateSettings.mutate({ login_particles_color3: e.target.value })}
+                    className="w-12 h-9 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={settings.login_particles_color3 || ""}
+                    onChange={(e) => updateSettings.mutate({ login_particles_color3: e.target.value || null })}
+                    placeholder="Cor 3 (Opcional)"
+                    className="flex-1"
+                  />
+                </div>
               </div>
             </div>
 
