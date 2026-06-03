@@ -53,6 +53,7 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   instacena_gif_right_opacity: 1,
   screensaver_enabled: true,
   screensaver_timeout: 5,
+  login_background_url: null,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
