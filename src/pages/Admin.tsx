@@ -378,6 +378,9 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Login Background Settings */}
+            <LoginBackgroundSettings />
 
             {/* Quick Access - Driver Panel */}
             <Card>
