@@ -51,9 +51,16 @@ interface Particle {
 export function AuthBackground() {
   const { settings } = useSiteSettings();
 
+  const particleCount = settings.login_particles_count ?? 100;
+  const particleEnabled = settings.login_particles_enabled ?? true;
+  const particleSpeed = settings.login_particles_speed ?? 1.0;
+  const particleColor = settings.login_particles_color === "white" ? "rgba(255, 255, 255, 1)" : settings.login_particles_color;
+
   // Generate random particles with varied sizes
   const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 100 }, (_, i) => {
+    if (!particleEnabled) return [];
+    
+    return Array.from({ length: particleCount }, (_, i) => {
       const rand = Math.random();
       let type: Particle["type"];
       let size: number;
@@ -81,8 +88,9 @@ export function AuthBackground() {
       }
 
       // Duration based on speed for depth effect
-      const baseDuration = speed === "fast" ? 4 : speed === "normal" ? 8 : 14;
-      const durationVariation = speed === "fast" ? 4 : speed === "normal" ? 6 : 8;
+      // Higher particleSpeed means lower duration (faster movement)
+      const baseDuration = (speed === "fast" ? 4 : speed === "normal" ? 8 : 14) / particleSpeed;
+      const durationVariation = (speed === "fast" ? 4 : speed === "normal" ? 6 : 8) / particleSpeed;
 
       return {
         id: i,
@@ -96,7 +104,7 @@ export function AuthBackground() {
         speed,
       };
     });
-  }, []);
+  }, [particleCount, particleEnabled, particleSpeed]);
 
   // Get daily verse based on day of year
   const dailyVerse = useMemo(() => {
@@ -117,6 +125,33 @@ export function AuthBackground() {
         >
           {/* Overlay to ensure readability if the image is too bright */}
           <div className="absolute inset-0 bg-black/40" />
+          
+          {/* Moving particles on top of custom background if enabled */}
+          {particleEnabled && particles.map((particle) => (
+            <div
+              key={particle.id}
+              className={`absolute rounded-full ${
+                particle.speed === "slow" 
+                  ? "animate-float-slow" 
+                  : particle.speed === "normal" 
+                    ? "animate-float-normal" 
+                    : "animate-float-fast"
+              }`}
+              style={{
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                opacity: particle.opacity,
+                backgroundColor: particleColor,
+                animationDuration: `${particle.duration}s`,
+                animationDelay: `${particle.delay}s`,
+                boxShadow: particle.type === "large"
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor.replace("1)", "0.15)")}`
+                  : "none",
+              }}
+            />
+          ))}
         </div>
       ) : (
         <>
@@ -157,10 +192,6 @@ export function AuthBackground() {
                   : particle.speed === "normal" 
                     ? "animate-float-normal" 
                     : "animate-float-fast"
-              } ${
-                particle.type === "large"
-                  ? "bg-white/30"
-                  : "bg-white/20"
               }`}
               style={{
                 left: `${particle.x}%`,
@@ -168,10 +199,11 @@ export function AuthBackground() {
                 width: `${particle.size}px`,
                 height: `${particle.size}px`,
                 opacity: particle.opacity,
+                backgroundColor: particleColor,
                 animationDuration: `${particle.duration}s`,
                 animationDelay: `${particle.delay}s`,
                 boxShadow: particle.type === "large"
-                  ? `0 0 ${particle.size}px ${particle.size / 2}px rgba(255, 255, 255, 0.15)`
+                  ? `0 0 ${particle.size}px ${particle.size / 2}px ${particleColor.replace("1)", "0.15)")}`
                   : "none",
               }}
             />
