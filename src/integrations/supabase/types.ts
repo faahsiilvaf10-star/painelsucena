@@ -4135,7 +4135,6 @@ export type Database = {
           sidebar_color: string | null
           sidebar_font: string | null
           sidebar_font_color: string | null
-          sync_login_bg_to_sidebar: boolean | null
           transition_logo_url: string | null
           ui_theme: string
           updated_at: string
@@ -4176,7 +4175,6 @@ export type Database = {
           sidebar_color?: string | null
           sidebar_font?: string | null
           sidebar_font_color?: string | null
-          sync_login_bg_to_sidebar?: boolean | null
           transition_logo_url?: string | null
           ui_theme?: string
           updated_at?: string
@@ -4217,7 +4215,6 @@ export type Database = {
           sidebar_color?: string | null
           sidebar_font?: string | null
           sidebar_font_color?: string | null
-          sync_login_bg_to_sidebar?: boolean | null
           transition_logo_url?: string | null
           ui_theme?: string
           updated_at?: string

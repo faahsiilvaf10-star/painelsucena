@@ -34,7 +34,6 @@ export interface SiteSettings {
   page_loading_img_url: string | null;
   global_background_url: string | null;
   global_background_opacity: number;
-  sync_login_bg_to_sidebar: boolean;
   updated_at: string;
   updated_by: string | null;
 }
@@ -77,7 +76,6 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   page_loading_img_url: null,
   global_background_url: null,
   global_background_opacity: 0.1,
-  sync_login_bg_to_sidebar: false,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -143,7 +141,6 @@ export function useSiteSettings() {
         page_loading_img_url: d.page_loading_img_url || null,
         global_background_url: d.global_background_url || null,
         global_background_opacity: d.global_background_opacity ?? 0.1,
-        sync_login_bg_to_sidebar: d.sync_login_bg_to_sidebar ?? false,
       };
     },
     staleTime: 1000 * 60 * 5,
