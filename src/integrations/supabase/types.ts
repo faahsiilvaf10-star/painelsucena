@@ -4122,6 +4122,7 @@ export type Database = {
           login_particles_speed: number | null
           logo_url: string | null
           nav_order: Json | null
+          page_loading_img_url: string | null
           primary_color: string | null
           screensaver_enabled: boolean | null
           screensaver_timeout: number | null
@@ -4159,6 +4160,7 @@ export type Database = {
           login_particles_speed?: number | null
           logo_url?: string | null
           nav_order?: Json | null
+          page_loading_img_url?: string | null
           primary_color?: string | null
           screensaver_enabled?: boolean | null
           screensaver_timeout?: number | null
@@ -4196,6 +4198,7 @@ export type Database = {
           login_particles_speed?: number | null
           logo_url?: string | null
           nav_order?: Json | null
+          page_loading_img_url?: string | null
           primary_color?: string | null
           screensaver_enabled?: boolean | null
           screensaver_timeout?: number | null
