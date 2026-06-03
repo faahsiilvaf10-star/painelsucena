@@ -84,6 +84,8 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     );
   }
 
+  if (isLoginTransitioning) return null;
+
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className={`h-screen flex flex-row w-full overflow-x-clip overflow-y-hidden ${useAura ? "bg-[#1a1814]" : "bg-background"}`}>
@@ -92,6 +94,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
+
         <div
           className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
             justCompletedTransition ? "animate-fade-in" : ""
