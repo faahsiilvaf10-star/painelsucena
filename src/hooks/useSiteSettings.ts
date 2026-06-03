@@ -23,6 +23,10 @@ export interface SiteSettings {
   screensaver_enabled: boolean;
   screensaver_timeout: number;
   login_background_url: string | null;
+  login_particles_enabled: boolean;
+  login_particles_color: string;
+  login_particles_count: number;
+  login_particles_speed: number;
   updated_at: string;
   updated_by: string | null;
 }
@@ -54,6 +58,10 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   screensaver_enabled: true,
   screensaver_timeout: 5,
   login_background_url: null,
+  login_particles_enabled: true,
+  login_particles_color: "white",
+  login_particles_count: 100,
+  login_particles_speed: 1.0,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -108,6 +116,10 @@ export function useSiteSettings() {
         screensaver_enabled: d.screensaver_enabled ?? true,
         screensaver_timeout: d.screensaver_timeout ?? 5,
         login_background_url: d.login_background_url || null,
+        login_particles_enabled: d.login_particles_enabled ?? true,
+        login_particles_color: d.login_particles_color || "white",
+        login_particles_count: d.login_particles_count ?? 100,
+        login_particles_speed: d.login_particles_speed ?? 1.0,
       };
     },
     staleTime: 1000 * 60 * 5,
