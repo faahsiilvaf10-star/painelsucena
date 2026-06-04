@@ -109,7 +109,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
             />
           )}
           <div className="relative z-10 flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-            
+            <SidebarTrigger className="fixed top-1/2 -translate-y-1/2 left-0 z-[101] md:hidden h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 shadow-lg p-0 flex items-center justify-center translate-x-1" />
             {children}
           </div>
         </div>

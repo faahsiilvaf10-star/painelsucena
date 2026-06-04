@@ -475,26 +475,29 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
       </SidebarHeader>
 
       {/* Floating collapse button - positioned in the middle of sidebar edge, half in half out */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!lockedCollapsed) toggleSidebar();
-        }}
-        disabled={lockedCollapsed}
-        className={`absolute top-1/2 -translate-y-1/2 z-[101] h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all flex ${isCollapsed ? "-right-10" : "-right-4"} ${
-          lockedCollapsed ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        style={{ touchAction: 'manipulation' }}
-      >
-        {isCollapsed ? (
-          <img src={sidebarArrowRight} alt="Abrir" className="h-7 w-7" />
-        ) : (
-          <img src={sidebarArrowLeft} alt="Fechar" className="h-7 w-7 rotate-180" />
-        )}
-      </Button>
+      {/* Floating collapse button - positioned in the middle of sidebar edge, half in half out */}
+      {!sidebarIsMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!lockedCollapsed) toggleSidebar();
+          }}
+          disabled={lockedCollapsed}
+          className={`absolute top-1/2 -translate-y-1/2 z-[101] h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all flex ${isCollapsed ? "-right-10" : "-right-4"} ${
+            lockedCollapsed ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          style={{ touchAction: 'manipulation' }}
+        >
+          {isCollapsed ? (
+            <img src={sidebarArrowRight} alt="Abrir" className="h-7 w-7" />
+          ) : (
+            <img src={sidebarArrowLeft} alt="Fechar" className="h-7 w-7 rotate-180" />
+          )}
+        </Button>
+      )}
 
       {/* Navigation */}
       <SidebarContent className="relative z-10">

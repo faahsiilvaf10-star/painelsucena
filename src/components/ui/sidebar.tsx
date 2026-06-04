@@ -214,7 +214,7 @@ Sidebar.displayName = "Sidebar";
 
 const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.ComponentProps<typeof Button>>(
   ({ className, onClick, ...props }, ref) => {
-    const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
+    const { toggleSidebar, setOpenMobile, isMobile, state } = useSidebar();
 
     return (
       <Button
@@ -233,7 +233,11 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
         }}
         {...props}
       >
-        <PanelLeft />
+        <img 
+          src={state === "collapsed" ? "/src/assets/sidebar-arrow-right.png" : "/src/assets/sidebar-arrow-left.png"} 
+          alt="Toggle" 
+          className={cn("h-7 w-7", state === "expanded" && "rotate-180")} 
+        />
         <span className="sr-only">Toggle Sidebar</span>
       </Button>
     );
