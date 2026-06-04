@@ -1,4 +1,6 @@
 import * as React from "react";
+import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
+import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
@@ -234,7 +236,7 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
         {...props}
       >
         <img 
-          src={state === "collapsed" ? "/src/assets/sidebar-arrow-right.png" : "/src/assets/sidebar-arrow-left.png"} 
+          src={state === "collapsed" ? sidebarArrowRight : sidebarArrowLeft} 
           alt="Toggle" 
           className={cn("h-7 w-7", state === "expanded" && "rotate-180")} 
         />
