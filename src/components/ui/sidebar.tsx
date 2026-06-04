@@ -214,7 +214,7 @@ Sidebar.displayName = "Sidebar";
 
 const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.ComponentProps<typeof Button>>(
   ({ className, onClick, ...props }, ref) => {
-    const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
+    const { toggleSidebar, setOpenMobile, isMobile, state } = useSidebar();
 
     return (
       <Button
