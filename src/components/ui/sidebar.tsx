@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -150,6 +150,22 @@ const Sidebar = React.forwardRef<
     );
   }
 
+  if (isMobile) {
+    return (
+      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <SheetContent
+          data-sidebar="sidebar"
+          data-mobile="true"
+          className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          side={side}
+        >
+          <SheetTitle className="sr-only">Sidebar</SheetTitle>
+          <div className="flex h-full w-full flex-col">{children}</div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <div
       ref={ref}
@@ -198,7 +214,7 @@ Sidebar.displayName = "Sidebar";
 
 const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.ComponentProps<typeof Button>>(
   ({ className, onClick, ...props }, ref) => {
-    const { toggleSidebar } = useSidebar();
+    const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
 
     return (
       <Button
@@ -209,7 +225,11 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
         className={cn("h-7 w-7", className)}
         onClick={(event) => {
           onClick?.(event);
-          toggleSidebar();
+          if (isMobile) {
+            setOpenMobile(true);
+          } else {
+            toggleSidebar();
+          }
         }}
         {...props}
       >
