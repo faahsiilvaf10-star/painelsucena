@@ -78,6 +78,8 @@ export function PreJoinScreen({
     streamRef.current = stream;
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+      // Garante que o vídeo toque após definir o stream
+      videoRef.current.play().catch(e => console.error("Erro ao dar play no vídeo:", e));
     }
 
     try {

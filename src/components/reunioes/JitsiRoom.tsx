@@ -8,9 +8,8 @@ declare global {
   }
 }
 
-// Servidor Jitsi público que permite embed e entrada anônima sem exigir moderador/login.
-// meet.jit.si passou a bloquear a criação de salas em alguns fluxos públicos.
-const JITSI_DOMAIN = "meet.element.io";
+// Servidor Jitsi alternativo estável
+const JITSI_DOMAIN = "meet.jit.si";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
 
 let scriptPromise: Promise<void> | null = null;
