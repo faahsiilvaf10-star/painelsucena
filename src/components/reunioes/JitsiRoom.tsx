@@ -258,6 +258,12 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         fallbackTimer = window.setTimeout(() => {
           if (!disposed) {
             console.warn("[JitsiRoom] join timeout, showing direct iframe fallback");
+            try {
+              apiRef.current?.dispose?.();
+            } catch {
+              /* ignore */
+            }
+            apiRef.current = null;
             setStatus("fallback");
           }
         }, 12000);
@@ -383,7 +389,23 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
   return (
     <div
       ref={containerRef}
-      className="jitsi-room-container absolute inset-0 w-full h-full"
-    />
+      className="jitsi-room-container absolute inset-0 h-full w-full bg-background"
+    >
+      {status === "loading" && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background text-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Carregando câmera da reunião...</p>
+        </div>
+      )}
+      {status === "fallback" && directRoomUrl && (
+        <iframe
+          title="Sala de reunião"
+          src={directRoomUrl}
+          allow={IFRAME_ALLOW}
+          allowFullScreen
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      )}
+    </div>
   );
 });
