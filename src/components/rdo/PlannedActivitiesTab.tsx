@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { MessageCircle, Copy, Loader2, CheckCircle2, Leaf, Hammer, Lock, Save, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
@@ -38,6 +39,8 @@ interface PlannedActivitiesTabProps {
     faixa_jardinagem?: string;
     faixa_gabiao?: string;
     unidade_gabiao?: string;
+    manual_jardinagem?: string;
+    manual_gabiao?: string;
   } | null;
   initialLocks?: { gabiao: boolean; jardinagem: boolean };
   onSave: (planned: any, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => Promise<void>;
@@ -62,6 +65,8 @@ export function PlannedActivitiesTab({
   const [faixaJardinagem, setFaixaJardinagem] = useState<string>(initialPlanned?.faixa_jardinagem || "");
   const [faixaGabiao, setFaixaGabiao] = useState<string>(initialPlanned?.faixa_gabiao || "");
   const [unidadeGabiao, setUnidadeGabiao] = useState<string>(initialPlanned?.unidade_gabiao || "");
+  const [manualJardinagem, setManualJardinagem] = useState<string>(initialPlanned?.manual_jardinagem || "");
+  const [manualGabiao, setManualGabiao] = useState<string>(initialPlanned?.manual_gabiao || "");
   const [isGabiaoLocked, setIsGabiaoLocked] = useState(initialLocks?.gabiao || false);
   const [isJardinagemLocked, setIsJardinagemLocked] = useState(initialLocks?.jardinagem || false);
   const [showConfirmGabiao, setShowConfirmGabiao] = useState(false);
@@ -73,6 +78,8 @@ export function PlannedActivitiesTab({
     setFaixaJardinagem(initialPlanned?.faixa_jardinagem || "");
     setFaixaGabiao(initialPlanned?.faixa_gabiao || "");
     setUnidadeGabiao(initialPlanned?.unidade_gabiao || "");
+    setManualJardinagem(initialPlanned?.manual_jardinagem || "");
+    setManualGabiao(initialPlanned?.manual_gabiao || "");
     setIsGabiaoLocked(initialLocks?.gabiao || false);
     setIsJardinagemLocked(initialLocks?.jardinagem || false);
   }, [initialPlanned, initialLocks]);
@@ -94,18 +101,20 @@ export function PlannedActivitiesTab({
   const generatePreview = () => {
     const lines: string[] = ["📋 ATIVIDADES PREVISTAS", ""];
     
-    if (plannedGabiao.length > 0) {
+    if (plannedGabiao.length > 0 || manualGabiao) {
       lines.push("🏗️ GABIÃO");
       if (faixaGabiao) lines.push(`📍 Faixa: ${faixaGabiao}`);
       if (unidadeGabiao) lines.push(`🧱 Unidade: ${unidadeGabiao}`);
       plannedGabiao.forEach(a => lines.push(`✅ ${a}`));
+      if (manualGabiao) lines.push(`📝 Outros: ${manualGabiao}`);
       lines.push("");
     }
 
-    if (plannedJardinagem.length > 0) {
+    if (plannedJardinagem.length > 0 || manualJardinagem) {
       lines.push("🌱 JARDINAGEM");
       if (faixaJardinagem) lines.push(`📍 Faixa: ${faixaJardinagem}`);
       plannedJardinagem.forEach(a => lines.push(`✅ ${a}`));
+      if (manualJardinagem) lines.push(`📝 Outros: ${manualJardinagem}`);
       lines.push("");
     }
 
@@ -120,6 +129,8 @@ export function PlannedActivitiesTab({
       faixa_jardinagem: faixaJardinagem,
       faixa_gabiao: faixaGabiao,
       unidade_gabiao: unidadeGabiao,
+      manual_jardinagem: manualJardinagem,
+      manual_gabiao: manualGabiao,
     };
   };
 
@@ -217,6 +228,15 @@ export function PlannedActivitiesTab({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Outra atividade (Preenchimento Manual)</Label>
+                <Input 
+                  value={manualJardinagem} 
+                  onChange={(e) => setManualJardinagem(e.target.value)}
+                  placeholder="Descreva outra atividade..."
+                  disabled={isJardinagemLocked}
+                />
+              </div>
             </div>
 
             <ScrollArea className="h-[250px] pr-4">
@@ -313,6 +333,15 @@ export function PlannedActivitiesTab({
                     <SelectItem value="Gabião 3">Gabião 3</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label className="text-sm font-medium">Outra atividade (Preenchimento Manual)</Label>
+                <Input 
+                  value={manualGabiao} 
+                  onChange={(e) => setManualGabiao(e.target.value)}
+                  placeholder="Descreva outra atividade..."
+                  disabled={isGabiaoLocked}
+                />
               </div>
             </div>
 
