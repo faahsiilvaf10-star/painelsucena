@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 
@@ -11,6 +12,9 @@ declare global {
 // Servidor Jitsi alternativo estável
 const JITSI_DOMAIN = "meet.jit.si";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
+const IFRAME_ALLOW = "camera *; microphone *; fullscreen *; display-capture *; autoplay *; clipboard-read *; clipboard-write *";
+
+type RoomStatus = "loading" | "ready" | "fallback";
 
 let scriptPromise: Promise<void> | null = null;
 function loadJitsiScript(): Promise<void> {
@@ -53,6 +57,23 @@ function buildEmbeddedRoomName(roomName: string, variant: "primary" | "fallback"
   const appScopedSeed = `${window.location.host}:${sanitizedRoomName}:${variant}`;
   const hash = stableHash(appScopedSeed);
   return `OpsHubRoom${hash}`;
+}
+
+function buildDirectRoomUrl(
+  embeddedRoomName: string,
+  opts: { subject?: string; displayName: string; startWithAudioMuted: boolean; startWithVideoMuted: boolean },
+) {
+  const params = new URLSearchParams();
+  params.set("config.prejoinPageEnabled", "false");
+  params.set("config.prejoinConfig.enabled", "false");
+  params.set("config.disableDeepLinking", "true");
+  params.set("config.enableWelcomePage", "false");
+  params.set("config.startWithAudioMuted", String(opts.startWithAudioMuted));
+  params.set("config.startWithVideoMuted", String(opts.startWithVideoMuted));
+  params.set("config.subject", opts.subject || embeddedRoomName);
+  params.set("userInfo.displayName", opts.displayName);
+  params.set("interfaceConfig.MOBILE_APP_PROMO", "false");
+  return `https://${JITSI_DOMAIN}/${embeddedRoomName}#${params.toString()}`;
 }
 
 export interface JitsiRoomProps {
