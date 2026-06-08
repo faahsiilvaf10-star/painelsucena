@@ -130,6 +130,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
   useEffect(() => {
     let disposed = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
     const embeddedRoomName = buildEmbeddedRoomName(roomName, roomVariant);
     setStatus("loading");
     setDirectRoomUrl(
@@ -148,6 +149,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         console.log("[JitsiRoom] script loaded");
       } catch (e) {
         console.error("[JitsiRoom] script load failed", e);
+        if (!disposed) setStatus("fallback");
         return;
       }
       if (disposed) {
@@ -160,6 +162,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
       }
       if (!window.JitsiMeetExternalAPI) {
         console.error("[JitsiRoom] JitsiMeetExternalAPI not available");
+        if (!disposed) setStatus("fallback");
         return;
       }
 
@@ -195,7 +198,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...({
             iframeAttributes: {
-              allow: "camera; microphone; fullscreen; display-capture; autoplay",
+              allow: IFRAME_ALLOW,
             },
           } as any),
           configOverwrite: {
@@ -252,13 +255,18 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
         apiRef.current = api;
         console.log("[JitsiRoom] API created");
+        fallbackTimer = window.setTimeout(() => {
+          if (!disposed) {
+            console.warn("[JitsiRoom] join timeout, showing direct iframe fallback");
+            setStatus("fallback");
+          }
+        }, 12000);
 
         // Garante permissões no iframe (compartilhamento de tela, câmera, mic)
         try {
           const iframe: HTMLIFrameElement | null = api.getIFrame?.() ?? containerRef.current?.querySelector("iframe");
           if (iframe) {
-            const allowValue = "camera; microphone; fullscreen; display-capture; autoplay";
-            iframe.setAttribute("allow", allowValue);
+            iframe.setAttribute("allow", IFRAME_ALLOW);
             iframe.setAttribute("allowfullscreen", "true");
           }
         } catch (e) {
@@ -266,6 +274,8 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         }
         api.addListener("videoConferenceJoined", () => {
           console.log("[JitsiRoom] joined");
+          if (fallbackTimer) window.clearTimeout(fallbackTimer);
+          if (!disposed) setStatus("ready");
 
           const joinedAsVisitor = typeof api.isVisitor === "function" ? Boolean(api.isVisitor()) : false;
           if (joinedAsVisitor && !retriedVisitorFallbackRef.current) {
@@ -316,6 +326,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         api.addListener("participantLeft", (p: any) => onParticipantLeft?.(p));
       } catch (e) {
         console.error("[JitsiRoom] failed to create API", e);
+        if (!disposed) setStatus("fallback");
       }
     };
 
@@ -323,6 +334,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
     return () => {
       disposed = true;
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
       try {
         apiRef.current?.dispose?.();
       } catch {
