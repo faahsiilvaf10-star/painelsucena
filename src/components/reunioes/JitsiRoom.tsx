@@ -195,7 +195,6 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           // Permissões necessárias para o iframe interno do Jitsi acessar
           // câmera, microfone e compartilhamento de tela (display-capture).
           // Sem isto, o seletor de tela do navegador trava em "carregando".
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...({
             iframeAttributes: {
               allow: IFRAME_ALLOW,
