@@ -43,6 +43,8 @@ export default function AtividadePrevista() {
 
   const baseGabiaoActivities = useMemo(() => [
     "Escavação manual",
+    "Nivelamento de solo",
+    "Montagem de Colchão",
     "Reposição de manta asfáltica",
     "Reposição de silte",
     "Limpeza e organização",
