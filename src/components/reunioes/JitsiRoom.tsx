@@ -144,7 +144,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const apiRef = useRef<any>(null);
+  const apiRef = useRef<JitsiApi | null>(null);
   const retriedVisitorFallbackRef = useRef(false);
   const [roomVariant, setRoomVariant] = useState<"primary" | "fallback">("primary");
   const [status, setStatus] = useState<RoomStatus>("loading");
@@ -224,11 +224,9 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           // Permissões necessárias para o iframe interno do Jitsi acessar
           // câmera, microfone e compartilhamento de tela (display-capture).
           // Sem isto, o seletor de tela do navegador trava em "carregando".
-          ...({
-            iframeAttributes: {
-              allow: IFRAME_ALLOW,
-            },
-          } as any),
+          iframeAttributes: {
+            allow: IFRAME_ALLOW,
+          },
           configOverwrite: {
             subject: subject || roomName,
             startWithAudioMuted,
@@ -356,8 +354,8 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         });
         api.addListener("readyToClose", () => onLeave?.());
         api.addListener("videoConferenceLeft", () => onLeave?.());
-        api.addListener("participantJoined", (p: any) => onParticipantJoined?.(p));
-        api.addListener("participantLeft", (p: any) => onParticipantLeft?.(p));
+        api.addListener("participantJoined", (p) => onParticipantJoined?.(p));
+        api.addListener("participantLeft", (p) => onParticipantLeft?.(p));
       } catch (e) {
         console.error("[JitsiRoom] failed to create API", e);
         if (!disposed) setStatus("fallback");
@@ -387,7 +385,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         if (!api?.getParticipantsInfo) return [];
         try {
           const list = api.getParticipantsInfo() || [];
-          return list.map((p: any) => ({
+          return list.map((p) => ({
             participantId: p.participantId || p.id,
             displayName: p.displayName || p.formattedDisplayName,
             avatarURL: p.avatarURL,
