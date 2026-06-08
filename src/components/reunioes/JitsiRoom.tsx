@@ -5,9 +5,38 @@ import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 
 declare global {
   interface Window {
-    JitsiMeetExternalAPI?: any;
+    JitsiMeetExternalAPI?: new (domain: string, options: JitsiEmbedOptions) => JitsiApi;
   }
 }
+
+type JitsiParticipant = {
+  id?: string;
+  participantId?: string;
+  displayName?: string;
+  formattedDisplayName?: string;
+  avatarURL?: string;
+};
+
+type JitsiApi = {
+  dispose?: () => void;
+  addListener: (event: string, handler: (payload: JitsiParticipant) => void) => void;
+  executeCommand?: (command: string, ...args: unknown[]) => void;
+  getIFrame?: () => HTMLIFrameElement | null;
+  getParticipantsInfo?: () => JitsiParticipant[];
+  isVisitor?: () => boolean;
+  myUserId?: () => string | undefined;
+};
+
+type JitsiEmbedOptions = {
+  roomName: string;
+  parentNode: HTMLElement;
+  width: string;
+  height: string;
+  userInfo: { displayName: string; email: string; avatarURL: string };
+  iframeAttributes: { allow: string };
+  configOverwrite: Record<string, unknown>;
+  interfaceConfigOverwrite: Record<string, unknown>;
+};
 
 // Servidor Jitsi alternativo estável
 const JITSI_DOMAIN = "meet.jit.si";
