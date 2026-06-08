@@ -97,6 +97,32 @@ const weatherLabels: Record<string, string> = {
   chuva: "Chuva",
 };
 
+const getMonthColor = (month: number): {
+  color: string;
+  name: string;
+  emoji: string;
+} => {
+  const colorMap: Record<number, {
+    color: string;
+    name: string;
+    emoji: string;
+  }> = {
+    0: { color: "red", name: "Vermelha", emoji: "🔴" },
+    1: { color: "blue", name: "Azul", emoji: "🔵" },
+    2: { color: "yellow", name: "Amarela", emoji: "🟡" },
+    3: { color: "green", name: "Verde", emoji: "🟢" },
+    4: { color: "red", name: "Vermelha", emoji: "🔴" },
+    5: { color: "blue", name: "Azul", emoji: "🔵" },
+    6: { color: "yellow", name: "Amarela", emoji: "🟡" },
+    7: { color: "green", name: "Verde", emoji: "🟢" },
+    8: { color: "red", name: "Vermelha", emoji: "🔴" },
+    9: { color: "blue", name: "Azul", emoji: "🔵" },
+    10: { color: "yellow", name: "Amarela", emoji: "🟡" },
+    11: { color: "green", name: "Verde", emoji: "🟢" }
+  };
+  return colorMap[month];
+};
+
 export default function RDO() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -529,7 +555,9 @@ ${jardinagemEquipmentText}
 • 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : ""} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
-${difficulties}`;
+${difficulties}
+
+${getMonthColor(selectedDate.getMonth()).emoji} Cor Proibida do Mês (${format(selectedDate, "MMMM", { locale: ptBR })}): ${getMonthColor(selectedDate.getMonth()).name}`;
 
     return report;
   };
