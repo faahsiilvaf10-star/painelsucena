@@ -130,7 +130,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
   useEffect(() => {
     let disposed = false;
-    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+    let fallbackTimer: number | undefined;
     const embeddedRoomName = buildEmbeddedRoomName(roomName, roomVariant);
     setStatus("loading");
     setDirectRoomUrl(
