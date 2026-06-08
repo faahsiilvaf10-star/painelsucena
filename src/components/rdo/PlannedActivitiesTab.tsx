@@ -398,9 +398,10 @@ export function PlannedActivitiesTab({
               Ao salvar e bloquear, as atividades de Gabião não poderão mais ser alteradas.
               <div className="mt-4 p-3 bg-muted rounded-md border text-foreground text-sm">
                 <p className="font-semibold mb-2">Atividades selecionadas:</p>
-                {plannedGabiao.length > 0 ? (
+                {plannedGabiao.length > 0 || manualGabiao ? (
                   <ul className="list-disc pl-5 space-y-1">
                     {plannedGabiao.map((a, i) => <li key={i}>{a}</li>)}
+                    {manualGabiao && <li className="italic">{manualGabiao} (Outros)</li>}
                   </ul>
                 ) : (
                   <p className="italic text-muted-foreground">Nenhuma atividade selecionada.</p>
@@ -423,9 +424,10 @@ export function PlannedActivitiesTab({
               Ao salvar e bloquear, as atividades de Jardinagem não poderão mais ser alteradas.
               <div className="mt-4 p-3 bg-muted rounded-md border text-foreground text-sm">
                 <p className="font-semibold mb-2">Atividades selecionadas:</p>
-                {plannedJardinagem.length > 0 ? (
+                {plannedJardinagem.length > 0 || manualJardinagem ? (
                   <ul className="list-disc pl-5 space-y-1">
                     {plannedJardinagem.map((a, i) => <li key={i}>{a}</li>)}
+                    {manualJardinagem && <li className="italic">{manualJardinagem} (Outros)</li>}
                   </ul>
                 ) : (
                   <p className="italic text-muted-foreground">Nenhuma atividade selecionada.</p>
