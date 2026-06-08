@@ -118,16 +118,28 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
   const apiRef = useRef<any>(null);
   const retriedVisitorFallbackRef = useRef(false);
   const [roomVariant, setRoomVariant] = useState<"primary" | "fallback">("primary");
+  const [status, setStatus] = useState<RoomStatus>("loading");
+  const [directRoomUrl, setDirectRoomUrl] = useState("");
   useTrackMeetingPresence(roomName);
 
   useEffect(() => {
     retriedVisitorFallbackRef.current = false;
     setRoomVariant("primary");
+    setStatus("loading");
   }, [roomName]);
 
   useEffect(() => {
     let disposed = false;
     const embeddedRoomName = buildEmbeddedRoomName(roomName, roomVariant);
+    setStatus("loading");
+    setDirectRoomUrl(
+      buildDirectRoomUrl(embeddedRoomName, {
+        subject,
+        displayName,
+        startWithAudioMuted,
+        startWithVideoMuted,
+      }),
+    );
 
     const init = async () => {
       console.log("[JitsiRoom] init started", { roomName, embeddedRoomName, roomVariant });
