@@ -1,16 +1,49 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 
 declare global {
   interface Window {
-    JitsiMeetExternalAPI?: any;
+    JitsiMeetExternalAPI?: new (domain: string, options: JitsiEmbedOptions) => JitsiApi;
   }
 }
+
+type JitsiParticipant = {
+  id?: string;
+  participantId?: string;
+  displayName?: string;
+  formattedDisplayName?: string;
+  avatarURL?: string;
+};
+
+type JitsiApi = {
+  dispose?: () => void;
+  addListener: (event: string, handler: (payload: JitsiParticipant) => void) => void;
+  executeCommand?: (command: string, ...args: unknown[]) => void;
+  getIFrame?: () => HTMLIFrameElement | null;
+  getParticipantsInfo?: () => JitsiParticipant[];
+  isVisitor?: () => boolean;
+  myUserId?: () => string | undefined;
+};
+
+type JitsiEmbedOptions = {
+  roomName: string;
+  parentNode: HTMLElement;
+  width: string;
+  height: string;
+  userInfo: { displayName: string; email: string; avatarURL: string };
+  iframeAttributes: { allow: string };
+  configOverwrite: Record<string, unknown>;
+  interfaceConfigOverwrite: Record<string, unknown>;
+};
 
 // Servidor Jitsi alternativo estável
 const JITSI_DOMAIN = "meet.jit.si";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
+const IFRAME_ALLOW = "camera *; microphone *; fullscreen *; display-capture *; autoplay *; clipboard-read *; clipboard-write *";
+
+type RoomStatus = "loading" | "ready" | "fallback";
 
 let scriptPromise: Promise<void> | null = null;
 function loadJitsiScript(): Promise<void> {
@@ -55,6 +88,23 @@ function buildEmbeddedRoomName(roomName: string, variant: "primary" | "fallback"
   return `OpsHubRoom${hash}`;
 }
 
+function buildDirectRoomUrl(
+  embeddedRoomName: string,
+  opts: { subject?: string; displayName: string; startWithAudioMuted: boolean; startWithVideoMuted: boolean },
+) {
+  const params = new URLSearchParams();
+  params.set("config.prejoinPageEnabled", "false");
+  params.set("config.prejoinConfig.enabled", "false");
+  params.set("config.disableDeepLinking", "true");
+  params.set("config.enableWelcomePage", "false");
+  params.set("config.startWithAudioMuted", String(opts.startWithAudioMuted));
+  params.set("config.startWithVideoMuted", String(opts.startWithVideoMuted));
+  params.set("config.subject", opts.subject || embeddedRoomName);
+  params.set("userInfo.displayName", opts.displayName);
+  params.set("interfaceConfig.MOBILE_APP_PROMO", "false");
+  return `https://${JITSI_DOMAIN}/${embeddedRoomName}#${params.toString()}`;
+}
+
 export interface JitsiRoomProps {
   roomName: string;
   displayName: string;
@@ -94,19 +144,32 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const apiRef = useRef<any>(null);
+  const apiRef = useRef<JitsiApi | null>(null);
   const retriedVisitorFallbackRef = useRef(false);
   const [roomVariant, setRoomVariant] = useState<"primary" | "fallback">("primary");
+  const [status, setStatus] = useState<RoomStatus>("loading");
+  const [directRoomUrl, setDirectRoomUrl] = useState("");
   useTrackMeetingPresence(roomName);
 
   useEffect(() => {
     retriedVisitorFallbackRef.current = false;
     setRoomVariant("primary");
+    setStatus("loading");
   }, [roomName]);
 
   useEffect(() => {
     let disposed = false;
+    let fallbackTimer: number | undefined;
     const embeddedRoomName = buildEmbeddedRoomName(roomName, roomVariant);
+    setStatus("loading");
+    setDirectRoomUrl(
+      buildDirectRoomUrl(embeddedRoomName, {
+        subject,
+        displayName,
+        startWithAudioMuted,
+        startWithVideoMuted,
+      }),
+    );
 
     const init = async () => {
       console.log("[JitsiRoom] init started", { roomName, embeddedRoomName, roomVariant });
@@ -115,6 +178,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         console.log("[JitsiRoom] script loaded");
       } catch (e) {
         console.error("[JitsiRoom] script load failed", e);
+        if (!disposed) setStatus("fallback");
         return;
       }
       if (disposed) {
@@ -127,6 +191,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
       }
       if (!window.JitsiMeetExternalAPI) {
         console.error("[JitsiRoom] JitsiMeetExternalAPI not available");
+        if (!disposed) setStatus("fallback");
         return;
       }
 
@@ -159,12 +224,9 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           // Permissões necessárias para o iframe interno do Jitsi acessar
           // câmera, microfone e compartilhamento de tela (display-capture).
           // Sem isto, o seletor de tela do navegador trava em "carregando".
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...({
-            iframeAttributes: {
-              allow: "camera; microphone; fullscreen; display-capture; autoplay",
-            },
-          } as any),
+          iframeAttributes: {
+            allow: IFRAME_ALLOW,
+          },
           configOverwrite: {
             subject: subject || roomName,
             startWithAudioMuted,
@@ -219,13 +281,24 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
         apiRef.current = api;
         console.log("[JitsiRoom] API created");
+        fallbackTimer = window.setTimeout(() => {
+          if (!disposed) {
+            console.warn("[JitsiRoom] join timeout, showing direct iframe fallback");
+            try {
+              apiRef.current?.dispose?.();
+            } catch {
+              /* ignore */
+            }
+            apiRef.current = null;
+            setStatus("fallback");
+          }
+        }, 12000);
 
         // Garante permissões no iframe (compartilhamento de tela, câmera, mic)
         try {
           const iframe: HTMLIFrameElement | null = api.getIFrame?.() ?? containerRef.current?.querySelector("iframe");
           if (iframe) {
-            const allowValue = "camera; microphone; fullscreen; display-capture; autoplay";
-            iframe.setAttribute("allow", allowValue);
+            iframe.setAttribute("allow", IFRAME_ALLOW);
             iframe.setAttribute("allowfullscreen", "true");
           }
         } catch (e) {
@@ -233,6 +306,8 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         }
         api.addListener("videoConferenceJoined", () => {
           console.log("[JitsiRoom] joined");
+          if (fallbackTimer) window.clearTimeout(fallbackTimer);
+          if (!disposed) setStatus("ready");
 
           const joinedAsVisitor = typeof api.isVisitor === "function" ? Boolean(api.isVisitor()) : false;
           if (joinedAsVisitor && !retriedVisitorFallbackRef.current) {
@@ -279,10 +354,11 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         });
         api.addListener("readyToClose", () => onLeave?.());
         api.addListener("videoConferenceLeft", () => onLeave?.());
-        api.addListener("participantJoined", (p: any) => onParticipantJoined?.(p));
-        api.addListener("participantLeft", (p: any) => onParticipantLeft?.(p));
+        api.addListener("participantJoined", (p) => onParticipantJoined?.(p));
+        api.addListener("participantLeft", (p) => onParticipantLeft?.(p));
       } catch (e) {
         console.error("[JitsiRoom] failed to create API", e);
+        if (!disposed) setStatus("fallback");
       }
     };
 
@@ -290,6 +366,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
 
     return () => {
       disposed = true;
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
       try {
         apiRef.current?.dispose?.();
       } catch {
@@ -308,7 +385,7 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         if (!api?.getParticipantsInfo) return [];
         try {
           const list = api.getParticipantsInfo() || [];
-          return list.map((p: any) => ({
+          return list.map((p) => ({
             participantId: p.participantId || p.id,
             displayName: p.displayName || p.formattedDisplayName,
             avatarURL: p.avatarURL,
@@ -338,7 +415,23 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
   return (
     <div
       ref={containerRef}
-      className="jitsi-room-container absolute inset-0 w-full h-full"
-    />
+      className="jitsi-room-container absolute inset-0 h-full w-full bg-background"
+    >
+      {status === "loading" && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background text-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Carregando câmera da reunião...</p>
+        </div>
+      )}
+      {status === "fallback" && directRoomUrl && (
+        <iframe
+          title="Sala de reunião"
+          src={directRoomUrl}
+          allow={IFRAME_ALLOW}
+          allowFullScreen
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      )}
+    </div>
   );
 });

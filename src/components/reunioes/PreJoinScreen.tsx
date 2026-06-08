@@ -128,7 +128,18 @@ export function PreJoinScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCam, selectedMic]);
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
+    if (navigator.mediaDevices?.getUserMedia && (!audioMuted || !videoMuted)) {
+      try {
+        const permissionStream = await navigator.mediaDevices.getUserMedia({
+          video: videoMuted ? false : selectedCam ? { deviceId: { exact: selectedCam } } : true,
+          audio: audioMuted ? false : selectedMic ? { deviceId: { exact: selectedMic } } : true,
+        });
+        permissionStream.getTracks().forEach((t) => t.stop());
+      } catch {
+        setError("Não foi possível confirmar câmera/microfone agora. A reunião será aberta para você tentar ativar dentro da sala.");
+      }
+    }
     streamRef.current?.getTracks().forEach((t) => t.stop());
     onJoin({ displayName: name.trim() || defaultName, audioMuted, videoMuted });
   };
