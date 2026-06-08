@@ -20,14 +20,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PlannedActivitiesTabProps {
   selectedDate: Date;
   gabiaoActivities: string[];
   jardinagemActivities: string[];
-  initialPlanned?: { gabiao: string[]; jardinagem: string[] } | null;
+  initialPlanned?: { 
+    gabiao: string[]; 
+    jardinagem: string[];
+    faixa_jardinagem?: string;
+    faixa_gabiao?: string;
+    unidade_gabiao?: string;
+  } | null;
   initialLocks?: { gabiao: boolean; jardinagem: boolean };
-  onSave: (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => Promise<void>;
+  onSave: (planned: any, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => Promise<void>;
   isSaving?: boolean;
   canEdit?: boolean;
   isAdmin?: boolean;
@@ -46,6 +59,9 @@ export function PlannedActivitiesTab({
 }: PlannedActivitiesTabProps) {
   const [plannedGabiao, setPlannedGabiao] = useState<string[]>(initialPlanned?.gabiao || []);
   const [plannedJardinagem, setPlannedJardinagem] = useState<string[]>(initialPlanned?.jardinagem || []);
+  const [faixaJardinagem, setFaixaJardinagem] = useState<string>(initialPlanned?.faixa_jardinagem || "");
+  const [faixaGabiao, setFaixaGabiao] = useState<string>(initialPlanned?.faixa_gabiao || "");
+  const [unidadeGabiao, setUnidadeGabiao] = useState<string>(initialPlanned?.unidade_gabiao || "");
   const [isGabiaoLocked, setIsGabiaoLocked] = useState(initialLocks?.gabiao || false);
   const [isJardinagemLocked, setIsJardinagemLocked] = useState(initialLocks?.jardinagem || false);
   const [showConfirmGabiao, setShowConfirmGabiao] = useState(false);
@@ -54,6 +70,9 @@ export function PlannedActivitiesTab({
   useEffect(() => {
     setPlannedGabiao(initialPlanned?.gabiao || []);
     setPlannedJardinagem(initialPlanned?.jardinagem || []);
+    setFaixaJardinagem(initialPlanned?.faixa_jardinagem || "");
+    setFaixaGabiao(initialPlanned?.faixa_gabiao || "");
+    setUnidadeGabiao(initialPlanned?.unidade_gabiao || "");
     setIsGabiaoLocked(initialLocks?.gabiao || false);
     setIsJardinagemLocked(initialLocks?.jardinagem || false);
   }, [initialPlanned, initialLocks]);
@@ -77,18 +96,31 @@ export function PlannedActivitiesTab({
     
     if (plannedGabiao.length > 0) {
       lines.push("🏗️ GABIÃO");
+      if (faixaGabiao) lines.push(`📍 Faixa: ${faixaGabiao}`);
+      if (unidadeGabiao) lines.push(`🧱 Unidade: ${unidadeGabiao}`);
       plannedGabiao.forEach(a => lines.push(`✅ ${a}`));
       lines.push("");
     }
 
     if (plannedJardinagem.length > 0) {
       lines.push("🌱 JARDINAGEM");
+      if (faixaJardinagem) lines.push(`📍 Faixa: ${faixaJardinagem}`);
       plannedJardinagem.forEach(a => lines.push(`✅ ${a}`));
       lines.push("");
     }
 
     lines.push(`Data: ${format(selectedDate, "dd/MM/yyyy")}`);
     return lines.join("\n");
+  };
+
+  const getPlannedData = () => {
+    return {
+      gabiao: plannedGabiao,
+      jardinagem: plannedJardinagem,
+      faixa_jardinagem: faixaJardinagem,
+      faixa_gabiao: faixaGabiao,
+      unidade_gabiao: unidadeGabiao,
+    };
   };
 
   const handleWhatsApp = async () => {
@@ -106,29 +138,29 @@ export function PlannedActivitiesTab({
   };
 
   const handleConfirmSaveGabiao = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: true }, "gabiao");
+    await onSave(getPlannedData(), { gabiao: true }, "gabiao");
     setShowConfirmGabiao(false);
   };
 
   const handleConfirmSaveJardinagem = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: true }, "jardinagem");
+    await onSave(getPlannedData(), { jardinagem: true }, "jardinagem");
     setShowConfirmJardinagem(false);
   };
 
   const handleUnlockGabiao = async () => {
     if (!isAdmin) return;
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: false });
+    await onSave(getPlannedData(), { gabiao: false });
     toast.info("Atividades de Gabião desbloqueadas");
   };
 
   const handleUnlockJardinagem = async () => {
     if (!isAdmin) return;
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: false });
+    await onSave(getPlannedData(), { jardinagem: false });
     toast.info("Atividades de Jardinagem desbloqueadas");
   };
 
   const handleSaveInternal = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem });
+    await onSave(getPlannedData());
   };
 
   return (
@@ -170,8 +202,24 @@ export function PlannedActivitiesTab({
             </CardTitle>
             <CardDescription>Selecione as atividades previstas para jardinagem</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px] pr-4">
+          <CardContent className="space-y-4">
+            <div className={cn("grid grid-cols-1 gap-4", isJardinagemLocked && "opacity-60 pointer-events-none")}>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Faixa</Label>
+                <Select value={faixaJardinagem} onValueChange={setFaixaJardinagem} disabled={isJardinagemLocked}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione a Faixa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FAIXA 2">FAIXA 2</SelectItem>
+                    <SelectItem value="FAIXA 3">FAIXA 3</SelectItem>
+                    <SelectItem value="FAIXA 4">FAIXA 4</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <ScrollArea className="h-[250px] pr-4">
               <div className={cn("space-y-2", isJardinagemLocked && "opacity-60 pointer-events-none")}>
                 {jardinagemActivities.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic py-4 text-center">Nenhuma atividade base encontrada.</p>
@@ -238,8 +286,37 @@ export function PlannedActivitiesTab({
             </CardTitle>
             <CardDescription>Selecione as atividades previstas para gabião</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px] pr-4">
+          <CardContent className="space-y-4">
+            <div className={cn("grid grid-cols-2 gap-4", isGabiaoLocked && "opacity-60 pointer-events-none")}>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Faixa</Label>
+                <Select value={faixaGabiao} onValueChange={setFaixaGabiao} disabled={isGabiaoLocked}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione a Faixa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FAIXA 2">FAIXA 2</SelectItem>
+                    <SelectItem value="FAIXA 3">FAIXA 3</SelectItem>
+                    <SelectItem value="FAIXA 4">FAIXA 4</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Gabião</Label>
+                <Select value={unidadeGabiao} onValueChange={setUnidadeGabiao} disabled={isGabiaoLocked}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione o Gabião" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gabião 1">Gabião 1</SelectItem>
+                    <SelectItem value="Gabião 2">Gabião 2</SelectItem>
+                    <SelectItem value="Gabião 3">Gabião 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <ScrollArea className="h-[250px] pr-4">
               <div className={cn("space-y-2", isGabiaoLocked && "opacity-60 pointer-events-none")}>
                 {gabiaoActivities.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic py-4 text-center">Nenhuma atividade base encontrada.</p>

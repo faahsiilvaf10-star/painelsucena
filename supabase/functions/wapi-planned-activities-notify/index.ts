@@ -64,6 +64,8 @@ Deno.serve(async (req) => {
 
     if ((!area || area === "gabiao") && planned?.gabiao && planned.gabiao.length > 0) {
       message += `*🧱 GABIÃO:*\n`;
+      if (planned.faixa_gabiao) message += `📍 Faixa: ${planned.faixa_gabiao}\n`;
+      if (planned.unidade_gabiao) message += `🧱 Unidade: ${planned.unidade_gabiao}\n`;
       planned.gabiao.forEach(act => {
         message += `• ${act}\n`;
       });
@@ -73,6 +75,7 @@ Deno.serve(async (req) => {
 
     if ((!area || area === "jardinagem") && planned?.jardinagem && planned.jardinagem.length > 0) {
       message += `*🌿 JARDINAGEM:*\n`;
+      if (planned.faixa_jardinagem) message += `📍 Faixa: ${planned.faixa_jardinagem}\n`;
       planned.jardinagem.forEach(act => {
         message += `• ${act}\n`;
       });
